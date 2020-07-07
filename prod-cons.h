@@ -6,10 +6,11 @@
 #include <stdio.h>
 #include <math.h>
 #include "queue.h"
+#include "timer.h"
+#include <unistd.h>
 
-#define LOOP 1000
-#define   p   3
-#define   c   2
+#define   p   1
+#define   c   1
 //functions that simulate jobs added by producers
 void* function_print_1(void* x);
 void* function_print_2(void* x);

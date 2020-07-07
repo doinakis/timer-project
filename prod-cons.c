@@ -4,14 +4,15 @@ void *producer (void *q)
 {
   queue *fifo;
   int i;
-
+  timer *t;
   //add a void variable to pass the integer as void * type to the function
   void * pointer;
   //srand to pick a function at random
   srand(time(NULL));
-
-  fifo = (queue *)q;
-  for (i = 0; i < LOOP; i++) {
+  t = (timer *)q;
+  fifo = t->q;
+  usleep(t->StartDelay);
+  for (i = 0; i < t->TasksToExecute; i++) {
     pthread_mutex_lock (fifo->mut);
     while (fifo->full) {
       printf ("producer: queue FULL.\n");
@@ -19,18 +20,18 @@ void *producer (void *q)
     }
 
     //add a random function in the queue and a random argument
-    workFunction  work;
-    work.work = functions_array[rand()%8];
-    pointer = &random_arguments[rand()%10];
-    work.arg = pointer;
+    // workFunction  work;
+    // work.work = functions_array[rand()%8];
+    // pointer = &random_arguments[rand()%10];
+    // work.arg = pointer;
     /*This part of the code is added for testing purposes*/
 
     // gettimeofday(&work.start_time,NULL);
 
-    queueAdd (fifo, work);
+    queueAdd (fifo, t->TimerFcn);
     pthread_mutex_unlock (fifo->mut);
     pthread_cond_signal (fifo->notEmpty);
-
+    usleep(t->Period);
   }
   /*This part of the code is added for testing purposes
     producer done update variable
