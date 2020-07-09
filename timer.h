@@ -3,21 +3,31 @@
 
 #include "queue.h"
 #include "prod-cons.h"
+#include <time.h>
+/*
+    ----------Timer Stracture----------
+  Period: Time between 2 calls of the function
+  TasksToExecute: How many times the function will be executed
+  StartDelay: Delay on the first run of the function
+  TimerFcn: Function to be executed
+  UserData: User defined data
+  queue : The fifo where all the functions await their execution
+*/
 typedef struct {
-  int Period; // Time between 2 calls of the function
-  int TasksToExecute; // How many times the function will be executed
-  int StartDelay; // Delay on the first run of the function
-  workFunction TimerFcn; // Function to be executed
+  int Period;
+  int TasksToExecute;
+  int StartDelay;
+  workFunction TimerFcn;
   int *UserData;
   queue *q;
 } timer;
 
 void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction TimerFcn,queue *q);
 void start(timer *t, pthread_t *pro);
-void startat(timer *t,int y,int m,int d,int h,int min,int sec);
+void startat(timer *t,int y,int m,int d,int h,int min,int sec,pthread_t *pro);
 void StartFcn(timer *t);
 void StopFcn(timer *t);
-void ErrorFCN(timer *t); // If the queue is full this function is executed
+void ErrorFcn(timer *t);
 
 
 #endif

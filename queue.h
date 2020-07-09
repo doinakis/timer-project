@@ -7,13 +7,13 @@
 #include <pthread.h>
 typedef struct{
 
-  void* (*work)(void*);
-  void* arg;
+  void *(*work)(void*);
+  void *arg;
   /*This part is added for testing purposes
     variables that hold when a function is added to the queue, when it arrives
     at the consumer and the substraction is the delay_time*/
   // struct timeval start_time,end_time;
-  // double delay_time;
+   int *delay_time;
 
 }workFunction;
 

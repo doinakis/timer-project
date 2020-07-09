@@ -11,7 +11,7 @@ void *producer (void *q)
   srand(time(NULL));
   t = (timer *)q;
   fifo = t->q;
-  usleep(t->StartDelay);
+  sleep(t->StartDelay);
   for (i = 0; i < t->TasksToExecute; i++) {
     pthread_mutex_lock (fifo->mut);
     while (fifo->full) {
@@ -29,6 +29,7 @@ void *producer (void *q)
     // gettimeofday(&work.start_time,NULL);
 
     queueAdd (fifo, t->TimerFcn);
+    printf ("Delay %d.\n",*t->TimerFcn.delay_time);
     pthread_mutex_unlock (fifo->mut);
     pthread_cond_signal (fifo->notEmpty);
     usleep(t->Period);
@@ -78,6 +79,7 @@ void *consumer (void *q)
     some overhead to the next delay_times */
     //the execution of the function takes place outside the mutex assuming that its execution doesnt interfere with other executions(e.g write at the same files etc.)
     (*d.work)(d.arg);
+    *d.delay_time = 1;
   }
   return (NULL);
 }

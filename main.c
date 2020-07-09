@@ -23,6 +23,7 @@ int main(void){
   work.work = functions_array[0];
   pointer = &random_arguments[0];
   work.arg = pointer;
+  work.delay_time = 0;
   queue *fifo;
 
    pthread_t *pro = (pthread_t *) malloc(p * sizeof(pthread_t));
@@ -34,12 +35,12 @@ int main(void){
     fprintf (stderr, "main: Queue Init failed.\n");
     exit (1);
   }
-  timerInit(&t[0],5,10,3,work,fifo);
-  work.work = functions_array[1];
-  pointer = &random_arguments[1];
-  work.arg = pointer;
-//  timerInit(&t[1],3,6,0,work,fifo);
-  start(t,pro);
+  timerInit(&t[0],5,3,0,work,fifo);
+  // work.work = functions_array[1];
+  // pointer = &random_arguments[1];
+  // work.arg = pointer;
+  // timerInit(&t[1],3,6,0,work,fifo);
+  startat(t,2020,7,9,22,10,0,pro);
   // for(int i =0; i<p;i++){
   //   pthread_create (&pro[i], NULL, producer,(void *)t);
   // }
