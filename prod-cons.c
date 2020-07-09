@@ -79,7 +79,7 @@ void *consumer (void *q)
     some overhead to the next delay_times */
     //the execution of the function takes place outside the mutex assuming that its execution doesnt interfere with other executions(e.g write at the same files etc.)
     (*d.work)(d.arg);
-    *d.delay_time = 1;
+    //*d.delay_time = 1;
   }
   return (NULL);
 }
