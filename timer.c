@@ -13,6 +13,11 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
   t->UserData = UserData;
   t->TimerFcn.arg = t->UserData;
   t->q = q;
+  t->pro = (pthread_t *)malloc(sizeof(pthread_t));
+  if(t->pro == NULL){
+    fprintf (stderr, "Unable to allocate producer.\n");
+    exit (1);
+  }
 
 }
 
@@ -20,16 +25,17 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
   Starts the array of timers set in main function and assigns them to the same
   number of consumers
 */
-void start(timer *t,pthread_t *pro){
+void start(timer *t){
   // for(int i=0; i < p; i++){
   //   pthread_create (&(pro[i]), NULL, producer,(void *)&(t[i]));
   // }
-  pthread_create(pro, NULL, producer,(void *)t);
+  pthread_create(t->pro, NULL, producer,(void *)t);
 }
 /*
   Starts the timer at the given time
 */
-void startat(timer *t,int y,int m,int d,int h,int min,int sec,pthread_t *pro){
+void startat(timer *t,int y,int m,int d,int h,int min,int sec){
+
   // The amount of seconds that need to be delayed
   int seconds;
   // get the local time and convert it into seconds
@@ -59,7 +65,7 @@ void startat(timer *t,int y,int m,int d,int h,int min,int sec,pthread_t *pro){
   //printf("waiting for %d %d %d %d %d %d seconds %d \n",y,m,d,h,min,sec,t->StartDelay);
 
   // Create a producer thread for the given timer
-  pthread_create(pro, NULL, producer,(void *)t);
+  pthread_create(t->pro, NULL, producer,(void *)t);
 
 }
 /*

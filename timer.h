@@ -11,7 +11,8 @@
   StartDelay: Delay on the first run of the function (in seconds)
   TimerFcn: Function to be executed
   UserData: User defined data
-  queue : The fifo where all the functions await their execution
+  queue: The fifo where all the functions await their execution
+  pro: The producer assigned with the timer 
 */
 typedef struct {
   int Period;
@@ -20,11 +21,12 @@ typedef struct {
   workFunction TimerFcn;
   void *UserData;
   queue *q;
+  pthread_t *pro;
 } timer;
 
 void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction TimerFcn,void *UserData,queue *q);
-void start(timer *t, pthread_t *pro);
-void startat(timer *t,int y,int m,int d,int h,int min,int sec,pthread_t *pro);
+void start(timer *t);
+void startat(timer *t,int y,int m,int d,int h,int min,int sec);
 void StartFcn(timer *t);
 void StopFcn(timer *t);
 void ErrorFcn(timer *t);

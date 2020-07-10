@@ -14,9 +14,8 @@
 int main(void){
   // queue *k = (queue *) malloc(sizeof(queue));
    timer *t = (timer *) malloc(sizeof(timer));
-   // t->Period = 5;
+  // t->Period = 5;
   // k = queueInit();
-  // printf("hello motherfucker %d\n",t->Period );
   // return 0;
   void *pointer;
   workFunction work;
@@ -25,22 +24,26 @@ int main(void){
   work.arg = pointer;
   queue *fifo;
 
-  pthread_t *pro = (pthread_t *) malloc(p * sizeof(pthread_t));
   pthread_t *con = (pthread_t *) malloc(c * sizeof(pthread_t));
+  if(con == NULL){
+    fprintf (stderr, "Unable to allocate consumer.\n");
+    exit (1);
+  }
 
   fifo = queueInit ();
 
   if (fifo ==  NULL) {
-    fprintf (stderr, "main: Queue Init failed.\n");
+    fprintf (stderr, "Main: Queue Init failed.\n");
     exit (1);
   }
   timerInit(&t[0],5,3,0,work,&random_arguments[0],fifo);
-  start(t,pro);
+  //timerInit(&t[1],5,3,0,work,&random_arguments[0],fifo);
+  //start(t);
   // work.work = functions_array[1];
   // pointer = &random_arguments[1];
   // work.arg = pointer;
   // timerInit(&t[1],3,6,0,work,fifo);
-//  startat(t,2020,7,9,22,10,0,pro);
+  startat(t,2020,7,10,12,39,0);
   // for(int i =0; i<p;i++){
   //   pthread_create (&pro[i], NULL, producer,(void *)t);
   // }
