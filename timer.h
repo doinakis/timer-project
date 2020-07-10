@@ -12,7 +12,7 @@
   TimerFcn: Function to be executed
   UserData: User defined data
   queue: The fifo where all the functions await their execution
-  pro: The producer assigned with the timer 
+  pro: The producer assigned with the timer
 */
 typedef struct {
   int Period;
@@ -29,7 +29,7 @@ void start(timer *t);
 void startat(timer *t,int y,int m,int d,int h,int min,int sec);
 void StartFcn(timer *t);
 void StopFcn(timer *t);
-void ErrorFcn(timer *t);
+void ErrorFcn(void);
 
 
 #endif

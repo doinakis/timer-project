@@ -4,7 +4,7 @@
   Initializes the timer parameters
 */
 void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction TimerFcn,void *UserData,queue *q){
-
+  StartFcn(t);
   t->Period = Period*1000000;
   t->TasksToExecute = TasksToExecute;
   t->StartDelay = StartDelay;
@@ -54,7 +54,6 @@ void startat(timer *t,int y,int m,int d,int h,int min,int sec){
   /*
       If the total seconds < 0 that means that the time given was in the past so
       the total seconds to sleep are 0
-
   */
 
   if (seconds < 0) seconds = 0;
@@ -72,17 +71,18 @@ void startat(timer *t,int y,int m,int d,int h,int min,int sec){
   Function that executes at the first time of initialization of the timer
 */
 void StartFcn(timer *t){
-  t->TimerFcn.arg = t->UserData;
+  fprintf (stderr, "Start function for initialization.\n");
 }
 /*
   Functions that executes right after the last execution of the TimerFcn
 */
 void StopFcn(timer *t){
+    fprintf (stderr, "Stop function dealocating space...\n");
     free(t);
 }
 /*
   Function that executes in case of buffer overflow
 */
-void ErrorFcn(timer *t){
-
+void ErrorFcn(void){
+  printf("Buffer overflow!");
 }

@@ -16,6 +16,7 @@ void *producer (void *q)
     pthread_mutex_lock (fifo->mut);
     while (fifo->full) {
       printf ("producer: queue FULL.\n");
+      ErrorFcn();
       pthread_cond_wait (fifo->notFull, fifo->mut);
     }
 

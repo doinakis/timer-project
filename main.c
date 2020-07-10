@@ -13,7 +13,7 @@
 
 int main(void){
   // queue *k = (queue *) malloc(sizeof(queue));
-   timer *t = (timer *) malloc(sizeof(timer));
+   timer *t = (timer *) malloc(2*sizeof(timer));
   // t->Period = 5;
   // k = queueInit();
   // return 0;
@@ -36,14 +36,16 @@ int main(void){
     fprintf (stderr, "Main: Queue Init failed.\n");
     exit (1);
   }
-  timerInit(&t[0],5,3,0,work,&random_arguments[0],fifo);
+  timerInit(&t[0],1,10,0,work,&random_arguments[0],fifo);
+  timerInit(&t[1],2,10,0,work,&random_arguments[0],fifo);
   //timerInit(&t[1],5,3,0,work,&random_arguments[0],fifo);
   //start(t);
   // work.work = functions_array[1];
   // pointer = &random_arguments[1];
   // work.arg = pointer;
   // timerInit(&t[1],3,6,0,work,fifo);
-  startat(t,2020,7,10,12,39,0);
+  startat(&t[0],2020,7,10,12,39,0);
+  startat(&t[1],2020,7,10,12,39,0);
   // for(int i =0; i<p;i++){
   //   pthread_create (&pro[i], NULL, producer,(void *)t);
   // }
