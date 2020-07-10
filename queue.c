@@ -46,7 +46,7 @@ void queueDelete(queue *q)
 }
 
 //changed the in variable to be type workFunction
-void queueAdd(queue *q, workFunction in)
+void queueAdd(queue *q, workFunction *in)
 {
   q->buf[q->tail] = in;
   q->tail++;
@@ -62,7 +62,7 @@ void queueAdd(queue *q, workFunction in)
 //changed the out variable to be type workFunction
 void queueDel(queue *q, workFunction *out)
 {
-  *out = q->buf[q->head];
+  *out = *q->buf[q->head];
 
   q->head++;
   if (q->head == QUEUESIZE)

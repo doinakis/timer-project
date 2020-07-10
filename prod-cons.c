@@ -32,16 +32,17 @@ void *producer(void *q)
     // gettimeofday(&work.start_time,NULL);
 
     queueAdd(fifo, t->TimerFcn);
-    printf("Delay %d.\n",*t->TimerFcn.delay_time);
+    printf("Delay %d.\n",t->TimerFcn->TasksToExecute);
     pthread_mutex_unlock (fifo->mut);
     pthread_cond_signal (fifo->notEmpty);
   }
-  pthread_mutex_lock(t->TimerFcn.work_mutex);
-  while(!*(t->TimerFcn.done)){
-  pthread_cond_wait(t->TimerFcn.execution_complete,t->TimerFcn.work_mutex);
+  pthread_mutex_lock(t->TimerFcn->work_mutex);
+  while(!*(t->TimerFcn->done)){
+  pthread_cond_wait(t->TimerFcn->execution_complete,t->TimerFcn->work_mutex);
   }
-  pthread_mutex_unlock(t->TimerFcn.work_mutex);
+  pthread_mutex_unlock(t->TimerFcn->work_mutex);
   printf("signal received!\n");
+  StopFcn(t);
   /*This part of the code is added for testing purposes
     producer done update variable
   pthread_mutex_lock (fifo->im_done);
@@ -92,7 +93,7 @@ void *consumer(void *q)
     *d.times_executed += 1;
     pthread_mutex_unlock(d.work_mutex);
     printf("alrigt %d!\n",*d.times_executed);
-    if(*d.times_executed == *d.delay_time){
+    if(*d.times_executed == d.TasksToExecute){
       //pthread_mutex_unlock(d.work_mutex);
       *d.done = 1;
       pthread_cond_signal(d.execution_complete);

@@ -3,24 +3,23 @@
 /*
   Initializes the timer parameters
 */
-void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction TimerFcn,void *UserData,queue *q){
+void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction *TimerFcn,void *UserData,queue *q){
   StartFcn(t);
   t->Period = Period*1000000;
   t->TasksToExecute = TasksToExecute;
   t->StartDelay = StartDelay;
   t->TimerFcn = TimerFcn;
-  t->TimerFcn.delay_time = (int *)malloc(sizeof(int));
-  *t->TimerFcn.delay_time = TasksToExecute;
-  t->TimerFcn.work_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-  pthread_mutex_init(t->TimerFcn.work_mutex,NULL);
-  t->TimerFcn.times_executed = (int *)malloc(sizeof(int));
-  t->TimerFcn.done = (int *)malloc(sizeof(int));
-  *t->TimerFcn.done = 0;
-  *t->TimerFcn.times_executed = 0;
-  t->TimerFcn.execution_complete = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
-  pthread_cond_init(t->TimerFcn.execution_complete, NULL);
+  t->TimerFcn->TasksToExecute = TasksToExecute;
+  t->TimerFcn->work_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+  pthread_mutex_init(t->TimerFcn->work_mutex,NULL);
+  t->TimerFcn->times_executed = (int *)malloc(sizeof(int));
+  t->TimerFcn->done = (int *)malloc(sizeof(int));
+  *t->TimerFcn->done = 0;
+  *t->TimerFcn->times_executed = 0;
+  t->TimerFcn->execution_complete = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
+  pthread_cond_init(t->TimerFcn->execution_complete, NULL);
   t->UserData = UserData;
-  t->TimerFcn.arg = t->UserData;
+  t->TimerFcn->arg = t->UserData;
   t->q = q;
   t->pro = (pthread_t *)malloc(sizeof(pthread_t));
   if(t->pro == NULL){
@@ -83,11 +82,16 @@ void StartFcn(timer *t){
   Functions that executes right after the last execution of the TimerFcn
 */
 void StopFcn(timer *t){
-    // fprintf (stderr, "Stop function dealocating space...\n");
-    // free(t->pro);
-    // free(t->TimerFcn.delay_time);
-    // queueDelete(t->q);
-    // free(t);
+
+  fprintf (stderr, "Stop function dealocating space...\n");
+  free(t->pro);
+  // free(t->TimerFcn->delay_time);
+  free(t->TimerFcn->times_executed);
+  pthread_mutex_destroy(t->TimerFcn->work_mutex);
+  free(t->TimerFcn->work_mutex);
+  pthread_cond_destroy(t->TimerFcn->execution_complete);
+  free(t->TimerFcn->execution_complete);
+  free(t);
 
 }
 /*

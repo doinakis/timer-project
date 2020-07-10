@@ -18,13 +18,13 @@ typedef struct {
   int Period;
   int TasksToExecute;
   int StartDelay;
-  workFunction TimerFcn;
+  workFunction *TimerFcn;
   void *UserData;
   queue *q;
   pthread_t *pro;
 } timer;
 
-void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction TimerFcn,void *UserData,queue *q);
+void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction *TimerFcn,void *UserData,queue *q);
 void start(timer *t);
 void startat(timer *t,int y,int m,int d,int h,int min,int sec);
 void StartFcn(timer *t);

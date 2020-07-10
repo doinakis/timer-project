@@ -13,7 +13,8 @@ typedef struct{
     variables that hold when a function is added to the queue, when it arrives
     at the consumer and the substraction is the delay_time*/
   // struct timeval start_time,end_time;
-   int *delay_time;
+   //int delay_time;
+   int TasksToExecute;
    pthread_mutex_t *work_mutex;
    pthread_cond_t *execution_complete;
    int *times_executed;
@@ -21,7 +22,7 @@ typedef struct{
 }workFunction;
 
 typedef struct {
-  workFunction buf[QUEUESIZE];
+  workFunction *buf[QUEUESIZE];
   long head, tail;
   int full, empty;
 
@@ -41,7 +42,7 @@ typedef struct {
 queue *queueInit(void);
 void queueDelete(queue *q);
 //change the in and out to workFunction type
-void queueAdd(queue *q, workFunction in);
+void queueAdd(queue *q, workFunction *in);
 void queueDel(queue *q, workFunction *out);
 
 
