@@ -5,6 +5,18 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdbool.h>
+/*
+    ----------workFunction Stracture----------
+  work: void pointer to function
+  arg: void pointer to function arguments
+  TasksToExecute: Times this function must be executed
+  work_mutex: Mutex variable to update times_executed variable
+  times_executed: How many times the function executed
+  execution_complete: Condition variable to show that the function completed its
+    executions
+  done: Variable that show if the execution completed
+*/
 typedef struct{
 
   void *(*work)(void*);
@@ -15,10 +27,11 @@ typedef struct{
   // struct timeval start_time,end_time;
    //int delay_time;
    int TasksToExecute;
+   int *times_executed;
+   bool *done;
    pthread_mutex_t *work_mutex;
    pthread_cond_t *execution_complete;
-   int *times_executed;
-   int *done;
+
 }workFunction;
 
 typedef struct {

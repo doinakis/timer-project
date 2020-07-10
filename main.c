@@ -23,7 +23,7 @@ int main(void){
   workFunction *work2 = (workFunction *)malloc(sizeof(workFunction));
   work1->work = functions_array[0];
   pointer = &random_arguments[0];
-  work1->arg = pointer;
+  //work1->arg = pointer;
   queue *fifo;
 
   pthread_t *con = (pthread_t *)malloc(c * sizeof(pthread_t));
@@ -41,7 +41,7 @@ int main(void){
   timerInit(t1,1,10,0,work1,&random_arguments[0],fifo);
   work2->work = functions_array[1];
   pointer = &random_arguments[1];
-  work2->arg = pointer;
+  //work2->arg = pointer;
   timerInit(t2,2,10,0,work2,&random_arguments[1],fifo);
   //timerInit(&t[1],5,3,0,work,&random_arguments[0],fifo);
   //start(t);

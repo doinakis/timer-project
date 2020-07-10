@@ -4,23 +4,29 @@
   Initializes the timer parameters
 */
 void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction *TimerFcn,void *UserData,queue *q){
+
   StartFcn(t);
+  // Assingments regarding the timer
   t->Period = Period*1000000;
   t->TasksToExecute = TasksToExecute;
   t->StartDelay = StartDelay;
   t->TimerFcn = TimerFcn;
+  t->UserData = UserData;
+  t->q = q;
+
+  // Assingments regarding the TimerFcn
+  t->TimerFcn->arg = t->UserData;
   t->TimerFcn->TasksToExecute = TasksToExecute;
+  t->TimerFcn->times_executed = (int *)malloc(sizeof(int));
+  *t->TimerFcn->times_executed = 0;
+  t->TimerFcn->done = (bool *)malloc(sizeof(bool));
+  *t->TimerFcn->done = 0;
   t->TimerFcn->work_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
   pthread_mutex_init(t->TimerFcn->work_mutex,NULL);
-  t->TimerFcn->times_executed = (int *)malloc(sizeof(int));
-  t->TimerFcn->done = (int *)malloc(sizeof(int));
-  *t->TimerFcn->done = 0;
-  *t->TimerFcn->times_executed = 0;
   t->TimerFcn->execution_complete = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
   pthread_cond_init(t->TimerFcn->execution_complete, NULL);
-  t->UserData = UserData;
-  t->TimerFcn->arg = t->UserData;
-  t->q = q;
+
+  // Producer thread allocation for the timer
   t->pro = (pthread_t *)malloc(sizeof(pthread_t));
   if(t->pro == NULL){
     fprintf(stderr, "Unable to allocate producer.\n");
@@ -29,20 +35,16 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
 
 }
 
-/*
-  Starts the array of timers set in main function and assigns them to the same
-  number of consumers
-*/
 void start(timer *t){
+  // Starts the timer thread
   pthread_create(t->pro, NULL, producer,(void *)t);
 }
-/*
-  Starts the timer at the given time
-*/
+
 void startat(timer *t,int y,int m,int d,int h,int min,int sec){
 
   // The amount of seconds that need to be delayed
   int seconds;
+  
   // get the local time and convert it into seconds
   time_t local_time=time(NULL);
   struct tm date= *localtime(&local_time);
@@ -65,22 +67,17 @@ void startat(timer *t,int y,int m,int d,int h,int min,int sec){
   seconds = seconds;
   // Add the additional delay to the StartDelay variable
   t->StartDelay += seconds;
-  //testing
-  //printf("waiting for %d %d %d %d %d %d seconds %d \n",y,m,d,h,min,sec,t->StartDelay);
 
   // Create a producer thread for the given timer
   pthread_create(t->pro, NULL, producer,(void *)t);
 
 }
-/*
-  Function that executes at the first time of initialization of the timer
-*/
+
 void StartFcn(timer *t){
+  // This function can be changed by the user depending on the application
   fprintf(stderr, "Start function for initialization.\n");
 }
-/*
-  Functions that executes right after the last execution of the TimerFcn
-*/
+
 void StopFcn(timer *t){
 
   fprintf (stderr, "Stop function dealocating space...\n");
@@ -94,9 +91,7 @@ void StopFcn(timer *t){
   free(t);
 
 }
-/*
-  Function that executes in case of buffer overflow
-*/
+
 void ErrorFcn(void){
   fprintf(stderr, "Buffer overflow!.\n");
 }
