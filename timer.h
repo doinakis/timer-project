@@ -52,7 +52,7 @@ void StartFcn(timer *t);
 
 /*
   StopFcn: Executes after the last instance of the function of the timer completes
-    its execution.It dealocates the space that was allocated for the execution of
+    its execution.It deallocates the space that was allocated for the execution of
     the timer.
 */
 void StopFcn(timer *t);

@@ -11,6 +11,7 @@
 
 #define   p   1
 #define   c   1
+
 //functions that simulate jobs added by producers
 void* function_print_1(void* x);
 void* function_print_2(void* x);

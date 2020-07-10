@@ -2,16 +2,23 @@
 
 void *producer(void *q)
 {
+  // Pointer to the queue
   queue *fifo;
   int i;
+
+  // Pointer to the timer
   timer *t;
-  //add a void variable to pass the integer as void * type to the function
+  // Add a void variable to pass the integer as void * type to the function
   void * pointer;
-  //srand to pick a function at random
+  // Srand to pick a function at random
   srand(time(NULL));
+
+  // Typecast the void* to a timer. t now points to the timer
   t = (timer *)q;
-  //pthread_mutex_lock(t->TimerFcn.work_mutex);
+  // Fifo now points at q
   fifo = t->q;
+
+  // Delay the required amount of seconds
   sleep(t->StartDelay);
   for (i = 0; i < t->TasksToExecute; i++) {
     usleep(t->Period);
@@ -33,60 +40,51 @@ void *producer(void *q)
 
     queueAdd(fifo, t->TimerFcn);
     printf("Delay %d.\n",t->TimerFcn->TasksToExecute);
-    pthread_mutex_unlock (fifo->mut);
-    pthread_cond_signal (fifo->notEmpty);
+    pthread_mutex_unlock(fifo->mut);
+    pthread_cond_signal(fifo->notEmpty);
   }
+  // Lock the mutex to check the done variable
   pthread_mutex_lock(t->TimerFcn->work_mutex);
+  // While dont is 0
   while(!*(t->TimerFcn->done)){
-  pthread_cond_wait(t->TimerFcn->execution_complete,t->TimerFcn->work_mutex);
+
+    // Wait for execution complete signal and unlock the variable
+    pthread_cond_wait(t->TimerFcn->execution_complete,t->TimerFcn->work_mutex);
   }
+  /* When the signal arrives (it means the function executed the required amount
+    of times ) unlock the mutex variable
+  */
+
   pthread_mutex_unlock(t->TimerFcn->work_mutex);
   printf("signal received!\n");
   StopFcn(t);
-  /*This part of the code is added for testing purposes
-    producer done update variable
-  pthread_mutex_lock (fifo->im_done);
-  fifo->done++;
-  pthread_mutex_unlock (fifo->im_done);
-  */
-  // StopFcn(t);
   return (NULL);
 }
 
 void *consumer(void *q)
 {
   queue *fifo;
-  //make d a workFunction variable
+  // Make d a workFunction variable
   workFunction d;
   fifo = (queue *)q;
 
-  // change the loop to while 1
+  // Change the loop to while 1
   while(1){
     pthread_mutex_lock(fifo->mut);
     while (fifo->empty) {
       printf("consumer: queue EMPTY.\n");
-      /*This part of the code is added for testing purposes*/
-      //close the file if the queue is empty and all the producers are done
-      // if(fifo->done == p){
-      //   fclose(f);
-      // }
-
       pthread_cond_wait(fifo->notEmpty, fifo->mut);
     }
-    //d is a workFunction variable produced by the producer
+    // d is a workFunction variable produced by the producer
     queueDel(fifo, &d);
-
-    /*This part of the code is added for testing purposes*/
-    // gettimeofday(&d.end_time,NULL);
-    // d.delay_time = (double)((d.end_time.tv_usec-d.start_time.tv_usec)/1.0e6+d.end_time.tv_sec-d.start_time.tv_sec);
-    // fprintf(f,"%f \n",d.delay_time);
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notFull);
 
-
-    /*keep in mind that with the calculation inside the critical part we may add
-    some overhead to the next delay_times */
-    //the execution of the function takes place outside the mutex assuming that its execution doesnt interfere with other executions(e.g write at the same files etc.)
+    /*
+      The execution of the function takes place outside the mutex assuming that
+        its execution doesnt interfere with other executions(e.g write at the same
+        files etc.)
+    */
     (*d.work)(d.arg);
     //*d.delay_time += 1;
     pthread_mutex_lock(d.work_mutex);
@@ -94,7 +92,6 @@ void *consumer(void *q)
     pthread_mutex_unlock(d.work_mutex);
     printf("alrigt %d!\n",*d.times_executed);
     if(*d.times_executed == d.TasksToExecute){
-      //pthread_mutex_unlock(d.work_mutex);
       *d.done = 1;
       pthread_cond_signal(d.execution_complete);
       printf("signal send\n");
@@ -104,7 +101,6 @@ void *consumer(void *q)
 }
 
 //series of  functions that just print something
-// compile like that to work gcc func_pointer.c -o func_pointer -lm
 void* function_print_1(void* arg){
   //print a message
   printf("Function 1 called randomly, the random argument is : %d  \n",*((int *) arg));

@@ -38,17 +38,14 @@ typedef struct {
   workFunction *buf[QUEUESIZE];
   long head, tail;
   int full, empty;
-
+  int global_done;
+  bool flag;
   /*This part is added for testing purposes
   added mutex variable im_done to update counter whenever a producer is done*/
 
-  // pthread_mutex_t *im_done;
-
+  pthread_mutex_t *all_done;
   pthread_mutex_t *mut;
-  pthread_cond_t *notFull, *notEmpty;
-
-  //variable thst holds how many producer are done
-  int done;
+  pthread_cond_t *notFull, *notEmpty, *done;
 
 } queue;
 
