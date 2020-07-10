@@ -13,7 +13,8 @@
 
 int main(void){
   // queue *k = (queue *) malloc(sizeof(queue));
-   timer *t = (timer *) malloc(2*sizeof(timer));
+   timer *t1 = (timer *)malloc(sizeof(timer));
+   //timer *t2 = (timer *) malloc(sizeof(timer));
   // t->Period = 5;
   // k = queueInit();
   // return 0;
@@ -24,7 +25,7 @@ int main(void){
   work.arg = pointer;
   queue *fifo;
 
-  pthread_t *con = (pthread_t *) malloc(c * sizeof(pthread_t));
+  pthread_t *con = (pthread_t *)malloc(c * sizeof(pthread_t));
   if(con == NULL){
     fprintf (stderr, "Unable to allocate consumer.\n");
     exit (1);
@@ -33,26 +34,26 @@ int main(void){
   fifo = queueInit ();
 
   if (fifo ==  NULL) {
-    fprintf (stderr, "Main: Queue Init failed.\n");
+    fprintf(stderr, "Main: Queue Init failed.\n");
     exit (1);
   }
-  timerInit(&t[0],1,10,0,work,&random_arguments[0],fifo);
-  timerInit(&t[1],2,10,0,work,&random_arguments[0],fifo);
+  timerInit(t1,1,10,0,work,&random_arguments[0],fifo);
+  //timerInit(t2,2,10,0,work,&random_arguments[0],fifo);
   //timerInit(&t[1],5,3,0,work,&random_arguments[0],fifo);
   //start(t);
   // work.work = functions_array[1];
   // pointer = &random_arguments[1];
   // work.arg = pointer;
   // timerInit(&t[1],3,6,0,work,fifo);
-  startat(&t[0],2020,7,10,12,39,0);
-  startat(&t[1],2020,7,10,12,39,0);
+  startat(t1,2020,7,10,12,39,0);
+  //startat(t2,2020,7,10,12,39,0);
   // for(int i =0; i<p;i++){
-  //   pthread_create (&pro[i], NULL, producer,(void *)t);
+  //   pthread_create(&pro[i], NULL, producer,(void *)t);
   // }
   //
   // //create c consumer threads
   for(int j=0;j<c;j++){
-    pthread_create (&con[j], NULL, consumer,(void *)fifo);
+    pthread_create(&con[j], NULL, consumer,(void *)fifo);
   }
   //
   // //wait for all the producers/consumers to finish their work
@@ -61,7 +62,7 @@ int main(void){
   // }
   //
   for(int j=0;j<c;j++){
-    pthread_join (con[j], NULL);
+    pthread_join(con[j], NULL);
   }
 
   //fclose(f);

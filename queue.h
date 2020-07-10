@@ -14,7 +14,10 @@ typedef struct{
     at the consumer and the substraction is the delay_time*/
   // struct timeval start_time,end_time;
    int *delay_time;
-
+   pthread_mutex_t *work_mutex;
+   pthread_cond_t *execution_complete;
+   int *times_executed;
+   int *done;
 }workFunction;
 
 typedef struct {
@@ -35,11 +38,11 @@ typedef struct {
 
 } queue;
 
-queue *queueInit (void);
-void queueDelete (queue *q);
+queue *queueInit(void);
+void queueDelete(queue *q);
 //change the in and out to workFunction type
-void queueAdd (queue *q, workFunction in);
-void queueDel (queue *q, workFunction *out);
+void queueAdd(queue *q, workFunction in);
+void queueDel(queue *q, workFunction *out);
 
 
 #endif

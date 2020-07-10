@@ -26,7 +26,7 @@ static void* (*functions_array[8])(void *) = {&function_print_1,&function_print_
                                               &function_tan,&function_atan};
 static int random_arguments[10] = {1,2,3,4,5,6,7,8,9,10};
 
-void *producer (void *q);
-void *consumer (void *q);
+void *producer(void *q);
+void *consumer(void *q);
 
 #endif

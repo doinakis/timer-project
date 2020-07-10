@@ -1,6 +1,6 @@
 #include "prod-cons.h"
 
-void *producer (void *q)
+void *producer(void *q)
 {
   queue *fifo;
   int i;
@@ -10,14 +10,16 @@ void *producer (void *q)
   //srand to pick a function at random
   srand(time(NULL));
   t = (timer *)q;
+  //pthread_mutex_lock(t->TimerFcn.work_mutex);
   fifo = t->q;
   sleep(t->StartDelay);
   for (i = 0; i < t->TasksToExecute; i++) {
-    pthread_mutex_lock (fifo->mut);
-    while (fifo->full) {
-      printf ("producer: queue FULL.\n");
+    usleep(t->Period);
+    pthread_mutex_lock(fifo->mut);
+    while(fifo->full) {
+      printf("producer: queue FULL.\n");
       ErrorFcn();
-      pthread_cond_wait (fifo->notFull, fifo->mut);
+      pthread_cond_wait(fifo->notFull, fifo->mut);
     }
 
     //add a random function in the queue and a random argument
@@ -29,23 +31,28 @@ void *producer (void *q)
 
     // gettimeofday(&work.start_time,NULL);
 
-    queueAdd (fifo, t->TimerFcn);
-    printf ("Delay %d.\n",*t->TimerFcn.delay_time);
+    queueAdd(fifo, t->TimerFcn);
+    printf("Delay %d.\n",*t->TimerFcn.delay_time);
     pthread_mutex_unlock (fifo->mut);
     pthread_cond_signal (fifo->notEmpty);
-    usleep(t->Period);
   }
+  pthread_mutex_lock(t->TimerFcn.work_mutex);
+  while(!*(t->TimerFcn.done)){
+  pthread_cond_wait(t->TimerFcn.execution_complete,t->TimerFcn.work_mutex);
+  }
+  pthread_mutex_unlock(t->TimerFcn.work_mutex);
+  printf("signal received!\n");
   /*This part of the code is added for testing purposes
     producer done update variable
   pthread_mutex_lock (fifo->im_done);
   fifo->done++;
   pthread_mutex_unlock (fifo->im_done);
   */
-
+  // StopFcn(t);
   return (NULL);
 }
 
-void *consumer (void *q)
+void *consumer(void *q)
 {
   queue *fifo;
   //make d a workFunction variable
@@ -54,33 +61,43 @@ void *consumer (void *q)
 
   // change the loop to while 1
   while(1){
-    pthread_mutex_lock (fifo->mut);
+    pthread_mutex_lock(fifo->mut);
     while (fifo->empty) {
-      printf ("consumer: queue EMPTY.\n");
+      printf("consumer: queue EMPTY.\n");
       /*This part of the code is added for testing purposes*/
       //close the file if the queue is empty and all the producers are done
       // if(fifo->done == p){
       //   fclose(f);
       // }
 
-      pthread_cond_wait (fifo->notEmpty, fifo->mut);
+      pthread_cond_wait(fifo->notEmpty, fifo->mut);
     }
     //d is a workFunction variable produced by the producer
-    queueDel (fifo, &d);
+    queueDel(fifo, &d);
 
     /*This part of the code is added for testing purposes*/
     // gettimeofday(&d.end_time,NULL);
     // d.delay_time = (double)((d.end_time.tv_usec-d.start_time.tv_usec)/1.0e6+d.end_time.tv_sec-d.start_time.tv_sec);
     // fprintf(f,"%f \n",d.delay_time);
-    pthread_mutex_unlock (fifo->mut);
-    pthread_cond_signal (fifo->notFull);
+    pthread_mutex_unlock(fifo->mut);
+    pthread_cond_signal(fifo->notFull);
 
 
     /*keep in mind that with the calculation inside the critical part we may add
     some overhead to the next delay_times */
     //the execution of the function takes place outside the mutex assuming that its execution doesnt interfere with other executions(e.g write at the same files etc.)
     (*d.work)(d.arg);
-    //*d.delay_time = 1;
+    //*d.delay_time += 1;
+    pthread_mutex_lock(d.work_mutex);
+    *d.times_executed += 1;
+    pthread_mutex_unlock(d.work_mutex);
+    printf("alrigt %d!\n",*d.times_executed);
+    if(*d.times_executed == *d.delay_time){
+      //pthread_mutex_unlock(d.work_mutex);
+      *d.done = 1;
+      pthread_cond_signal(d.execution_complete);
+      printf("signal send\n");
+    }
   }
   return (NULL);
 }

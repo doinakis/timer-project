@@ -10,12 +10,21 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
   t->StartDelay = StartDelay;
   t->TimerFcn = TimerFcn;
   t->TimerFcn.delay_time = (int *)malloc(sizeof(int));
+  *t->TimerFcn.delay_time = TasksToExecute;
+  t->TimerFcn.work_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+  pthread_mutex_init(t->TimerFcn.work_mutex,NULL);
+  t->TimerFcn.times_executed = (int *)malloc(sizeof(int));
+  t->TimerFcn.done = (int *)malloc(sizeof(int));
+  *t->TimerFcn.done = 0;
+  *t->TimerFcn.times_executed = 0;
+  t->TimerFcn.execution_complete = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
+  pthread_cond_init(t->TimerFcn.execution_complete, NULL);
   t->UserData = UserData;
   t->TimerFcn.arg = t->UserData;
   t->q = q;
   t->pro = (pthread_t *)malloc(sizeof(pthread_t));
   if(t->pro == NULL){
-    fprintf (stderr, "Unable to allocate producer.\n");
+    fprintf(stderr, "Unable to allocate producer.\n");
     exit (1);
   }
 
@@ -26,9 +35,6 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
   number of consumers
 */
 void start(timer *t){
-  // for(int i=0; i < p; i++){
-  //   pthread_create (&(pro[i]), NULL, producer,(void *)&(t[i]));
-  // }
   pthread_create(t->pro, NULL, producer,(void *)t);
 }
 /*
@@ -71,18 +77,22 @@ void startat(timer *t,int y,int m,int d,int h,int min,int sec){
   Function that executes at the first time of initialization of the timer
 */
 void StartFcn(timer *t){
-  fprintf (stderr, "Start function for initialization.\n");
+  fprintf(stderr, "Start function for initialization.\n");
 }
 /*
   Functions that executes right after the last execution of the TimerFcn
 */
 void StopFcn(timer *t){
-    fprintf (stderr, "Stop function dealocating space...\n");
-    free(t);
+    // fprintf (stderr, "Stop function dealocating space...\n");
+    // free(t->pro);
+    // free(t->TimerFcn.delay_time);
+    // queueDelete(t->q);
+    // free(t);
+
 }
 /*
   Function that executes in case of buffer overflow
 */
 void ErrorFcn(void){
-  printf("Buffer overflow!");
+  fprintf(stderr, "Buffer overflow!.\n");
 }
