@@ -10,26 +10,32 @@
 #include <signal.h>
 
 pthread_t *con;
-
+ int *kill_flag;
 void *killing(void *dead_queue){
   queue *dead = (queue *) dead_queue;
   pthread_mutex_lock(dead->all_done);
   while(!dead->flag){
     pthread_cond_wait(dead->done,dead->all_done);
   }
-  for(int i = 0; i < c; i++){
-    pthread_cancel(con[i]);
-    printf("killing!\n");
-  }
-  //queueDelete(dead);
+  *kill_flag = 1;
+  // for(int i = 0; i < c; i++){
+  //   pthread_cancel(con[i]);
+  //   printf("killing!\n");
+  // }
+  printf("DO WHATEVER %d\n",*kill_flag);
+//  queueDelete(dead);
+  return(NULL);
+
 }
 
 
 int main(void){
   // queue *k = (queue *) malloc(sizeof(queue));
+  kill_flag = (int *)malloc(sizeof(int));
+  *kill_flag = 0;
   con = (pthread_t *)malloc(c * sizeof(pthread_t));
   timer *t1 = (timer *)malloc(sizeof(timer));
-  // timer *t2 = (timer *) malloc(sizeof(timer));
+  timer *t2 = (timer *) malloc(sizeof(timer));
   // timer *t3 = (timer *) malloc(sizeof(timer));
   pthread_t *killer = (pthread_t *)malloc(sizeof(pthread_t));
   // t->Period = 5;
@@ -37,7 +43,7 @@ int main(void){
   // return 0;
   void *pointer;
   workFunction *work1 = (workFunction *)malloc(sizeof(workFunction));
-  // workFunction *work2 = (workFunction *)malloc(sizeof(workFunction));
+  workFunction *work2 = (workFunction *)malloc(sizeof(workFunction));
   // workFunction *work3 = (workFunction *)malloc(sizeof(workFunction));
   work1->work = functions_array[0];
   pointer = &random_arguments[0];
@@ -56,20 +62,21 @@ int main(void){
     exit (1);
   }
   timerInit(t1,1,10,0,work1,&random_arguments[0],fifo);
-  // work2->work = functions_array[1];
-  // pointer = &random_arguments[1];
+  work2->work = functions_array[1];
+  pointer = &random_arguments[1];
   //work2->arg = pointer;
-  // timerInit(t2,2,10,0,work2,&random_arguments[1],fifo);
+  timerInit(t2,2,10,0,work2,&random_arguments[1],fifo);
   // work3->work = functions_array[2];
   // pointer = &random_arguments[2];
   // timerInit(t3,1,10,0,work3,&random_arguments[2],fifo);
-  // //start(t);
+  start(t1);
+  start(t2);
   // // work.work = functions_array[1];
   // // pointer = &random_arguments[1];
   // // work.arg = pointer;
   // // timerInit(&t[1],3,6,0,work,fifo);
-  startat(t1,2020,7,10,12,39,0);
-  // startat(t2,2020,7,10,12,39,0);
+  // startat(t1,2020,7,10,12,39,0);
+  //startat(t2,2020,7,10,12,39,0);
   // startat(t3,2020,7,10,12,39,0);
   // for(int i =0; i<p;i++){
   //   pthread_create(&pro[i], NULL, producer,(void *)t);
@@ -80,20 +87,35 @@ int main(void){
   for(int j=0;j<c;j++){
     pthread_create(&con[j], NULL, consumer,(void *)fifo);
   }
-  pthread_create(killer,NULL,killing,(void *)fifo);
+  //pthread_create(killer,NULL,killing,(void *)fifo);
+  killing((void*)fifo);
   // //wait for all the producers/consumers to finish their work
   // for(int i=0;i<p;i++){
   //   pthread_join (pro[i], NULL);
   // }
   //
-  //for(int j=0;j<c;j++){
+  printf("WAITING TO JOIN\n");
   pthread_join(*killer, NULL);
-  //}
+  printf("JOINED\n");
+  fifo->empty = 0;
+
+  printf("signal send \n");
+  for(int j=0;j<c;j++){
+    pthread_mutex_lock(fifo->mut);
+    pthread_mutex_unlock(fifo->mut);
+    pthread_cond_signal(fifo->notEmpty);
+  }
+  for(int j=0;j<c;j++){
+    pthread_join (con[j], NULL);
+  }
+  printf("JOINED CONS\n");
+
+
   // free(t1);
   // free(t2);
   // free(t3);
   free(work1);
-  // free(work2);
+  free(work2);
   // free(work3);
   free(con);
   free(killer);

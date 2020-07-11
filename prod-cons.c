@@ -1,5 +1,6 @@
 #include "prod-cons.h"
 
+extern int *kill_flag;
 void *producer(void *q)
 {
   // Pointer to the queue
@@ -21,7 +22,7 @@ void *producer(void *q)
   // Delay the required amount of seconds
   sleep(t->StartDelay);
   for (i = 0; i < t->TasksToExecute; i++) {
-    usleep(t->Period);
+
     pthread_mutex_lock(fifo->mut);
     while(fifo->full) {
       printf("producer: queue FULL.\n");
@@ -42,6 +43,9 @@ void *producer(void *q)
     printf("Delay %d.\n",t->TimerFcn->TasksToExecute);
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notEmpty);
+    if(i != t->TasksToExecute - 1){
+      usleep(t->Period);
+    }
   }
   // Lock the mutex to check the done variable
   pthread_mutex_lock(t->TimerFcn->work_mutex);
@@ -72,9 +76,16 @@ void *consumer(void *q)
   while(1){
     pthread_mutex_lock(fifo->mut);
     while (fifo->empty) {
-      printf("consumer: queue EMPTY.\n");
+      printf("consumer: queue EMPTY .\n");
       pthread_cond_wait(fifo->notEmpty, fifo->mut);
     }
+    printf("KILL FLAG %d .\n",*kill_flag);
+    if(*kill_flag){
+      printf("EXIIIIIT .\n");
+      pthread_mutex_unlock(fifo->mut);
+      return(NULL);
+    }
+
     // d is a workFunction variable produced by the producer
     queueDel(fifo, &d);
     pthread_mutex_unlock(fifo->mut);
