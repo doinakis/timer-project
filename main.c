@@ -25,7 +25,6 @@ void *killing(void *dead_queue){
     pthread_cond_wait(dead->done,dead->all_done);
   }
   *kill_flag = 1;
-  pthread_mutex_unlock(dead->all_done);
   printf("DO WHATEVER \n");
   return(NULL);
 
@@ -86,7 +85,7 @@ int main(void){
   timerInit(t3,0,10,0,work3,&random_arguments[2],fifo);
   start(t1);
   start(t2);
-  //start(t3);
+  start(t3);
 
   /*
     Functions that waits all the consumers to finish their work and makes sure that

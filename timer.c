@@ -110,18 +110,18 @@ void ErrorFcn(void){
 void TimerStop(timer *t){
   pthread_mutex_lock(t->q->all_done);
   t->q->global_done++;
+  pthread_mutex_unlock(t->q->all_done);
   if(t->q->global_done == p){
     t->q->flag = 1;
     pthread_cond_signal(t->q->done);
   }
-  pthread_mutex_unlock(t->q->all_done);
-  fprintf(stderr, "Deallocating space...%d\n",t->q->global_done);
+  fprintf(stderr, "Deallocating space...\n");
   free(t->pro);
   // free(t->TimerFcn->delay_time);
- free(t->TimerFcn->times_executed);
- pthread_mutex_destroy(t->TimerFcn->work_mutex);
+  free(t->TimerFcn->times_executed);
+  pthread_mutex_destroy(t->TimerFcn->work_mutex);
   free(t->TimerFcn->work_mutex);
- pthread_cond_destroy(t->TimerFcn->execution_complete);
+  pthread_cond_destroy(t->TimerFcn->execution_complete);
   free(t->TimerFcn->execution_complete);
   free(t->TimerFcn->done);
   free(t);
