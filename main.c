@@ -12,6 +12,12 @@
 
 int *kill_flag;
 
+/*
+  Killing: its a function that takes as an argument a queue and waits until the
+  flag bool is true. If all the consumers are done and the dead flag is true then
+  the kill flag is set to 1 and all the consumers can now terminate. It waits a
+  done signal that is sent by the last active timer.
+*/
 void *killing(void *dead_queue){
   queue *dead = (queue *) dead_queue;
   pthread_mutex_lock(dead->all_done);
