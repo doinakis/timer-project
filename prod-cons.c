@@ -20,19 +20,25 @@ void *producer(void *q)
 
   // Delay the required amount of seconds
   sleep(t->StartDelay);
-  for (int i = 0; i < t->TasksToExecute; i++) {
+  for(int i = 0; i < t->TasksToExecute; i++) {
 
     pthread_mutex_lock(fifo->mut);
-    while(fifo->full){
+    if(fifo->full){
       //printf("producer: queue FULL.\n");
       ErrorFcn();
-      pthread_cond_wait(fifo->notFull,fifo->mut);
-      // pthread_mutex_unlock(fifo->mut);
-      // pthread_mutex_lock(t->TimerFcn->work_mutex);
-      // *t->TimerFcn->times_executed += 1;
-      // pthread_mutex_unlock(t->TimerFcn->work_mutex);
-      // usleep(t->Period);
-      // continue;
+      // pthread_cond_wait(fifo->notFull,fifo->mut);
+      pthread_mutex_unlock(fifo->mut);
+      pthread_mutex_lock(t->TimerFcn->work_mutex);
+      *t->TimerFcn->times_executed += 1;
+      if(*t->TimerFcn->times_executed == t->TimerFcn->TasksToExecute){
+        *t->TimerFcn->done = 1;
+        pthread_cond_signal(t->TimerFcn->execution_complete);
+      }
+      pthread_mutex_unlock(t->TimerFcn->work_mutex);
+      if(i != t->TasksToExecute - 1){
+        usleep(t->Period);
+      }
+      continue;
     }
 
     queueAdd(fifo, t->TimerFcn);
@@ -42,6 +48,7 @@ void *producer(void *q)
       usleep(t->Period);
     }
   }
+  printf("DONE DONE DONE\n");
   // Lock the mutex to check the done variable
   pthread_mutex_lock(t->TimerFcn->work_mutex);
   // While done is 0
@@ -92,11 +99,11 @@ void *consumer(void *q)
     //*d.delay_time += 1;
     pthread_mutex_lock(d.work_mutex);
     *d.times_executed += 1;
-    pthread_mutex_unlock(d.work_mutex);
     if(*d.times_executed == d.TasksToExecute){
       *d.done = 1;
       pthread_cond_signal(d.execution_complete);
     }
+    pthread_mutex_unlock(d.work_mutex);
   }
   return (NULL);
 }

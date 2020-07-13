@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #define   p   3
-#define   c   1
+#define   c   2
 
 //functions that simulate jobs added by producers
 void* function_print_1(void* x);
