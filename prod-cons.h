@@ -8,6 +8,9 @@
 #include "queue.h"
 #include "timer.h"
 #include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
+#include <sys/times.h>
 
 #define   p   3
 #define   c   1

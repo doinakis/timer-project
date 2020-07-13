@@ -26,12 +26,7 @@ void *producer(void *q)
     if(fifo->full){
       //printf("producer: queue FULL.\n");
       ErrorFcn();
-      pthread_mutex_unlock(fifo->mut);
-      pthread_mutex_lock(t->TimerFcn->work_mutex);
-      *t->TimerFcn->times_executed += 1;
-      pthread_mutex_unlock(t->TimerFcn->work_mutex);
-      usleep(t->Period);
-      continue;
+      pthread_cond_wait(fifo->notFull, fifo->mut);
     }
 
     queueAdd(fifo, t->TimerFcn);
@@ -43,7 +38,7 @@ void *producer(void *q)
   }
   // Lock the mutex to check the done variable
   pthread_mutex_lock(t->TimerFcn->work_mutex);
-  // While done is 0
+  // While dont is 0
   while(!*(t->TimerFcn->done)){
 
     // Wait for execution complete signal and unlock the variable
