@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <time.h>
+#include <sys/time.h>
+#include <sys/times.h>
 /*
     ----------workFunction Stracture----------
   work: void pointer to function
@@ -24,8 +27,8 @@ typedef struct{
   /*This part is added for testing purposes
     variables that hold when a function is added to the queue, when it arrives
     at the consumer and the substraction is the delay_time*/
-  // struct timeval start_time,end_time;
-   //int delay_time;
+   struct timeval start_time,end_time;
+   unsigned int delay_time;
    int TasksToExecute;
    int *times_executed;
    bool *done;

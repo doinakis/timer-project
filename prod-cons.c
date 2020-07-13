@@ -17,11 +17,11 @@ void *producer(void *q)
   t = (timer *)q;
   // Fifo now points at q
   fifo = t->q;
-
+  int adjust = t->Period;
   // Delay the required amount of seconds
   sleep(t->StartDelay);
   for(int i = 0; i < t->TasksToExecute; i++) {
-
+    gettimeofday(&t->TimerFcn->start_time,NULL);
     pthread_mutex_lock(fifo->mut);
     if(fifo->full){
       //printf("producer: queue FULL.\n");
@@ -36,8 +36,13 @@ void *producer(void *q)
       }
       pthread_mutex_unlock(t->TimerFcn->work_mutex);
       if(i != t->TasksToExecute - 1){
-        usleep(t->Period);
+        usleep(adjust);
       }
+      gettimeofday(&t->TimerFcn->end_time,NULL);
+      t->TimerFcn->delay_time = (unsigned int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
+      adjust = adjust - t->TimerFcn->delay_time;
+      if(adjust < 0) adjust = 0;
+      printf("%d\n",t->TimerFcn->delay_time);
       continue;
     }
 
@@ -45,10 +50,16 @@ void *producer(void *q)
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notEmpty);
     if(i != t->TasksToExecute - 1){
-      usleep(t->Period);
+      usleep(adjust);
     }
+    gettimeofday(&t->TimerFcn->end_time,NULL);
+    t->TimerFcn->delay_time = (unsigned int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
+    adjust = adjust - t->TimerFcn->delay_time;
+
+    if(adjust < 0) adjust = 0;
+    printf("%d\n",t->TimerFcn->delay_time);
+
   }
-  printf("DONE DONE DONE\n");
   // Lock the mutex to check the done variable
   pthread_mutex_lock(t->TimerFcn->work_mutex);
   // While done is 0

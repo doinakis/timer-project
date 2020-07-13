@@ -80,9 +80,9 @@ int main(void){
   /*
     Timer initialization and starting point
   */
-  timerInit(t1,0,10,0,work1,&random_arguments[0],fifo);
-  timerInit(t2,0,10,0,work2,&random_arguments[1],fifo);
-  timerInit(t3,0,10,0,work3,&random_arguments[2],fifo);
+  timerInit(t1,1,10,0,work1,&random_arguments[0],fifo);
+  timerInit(t2,0.1,10,0,work2,&random_arguments[1],fifo);
+  timerInit(t3,0.01,10,0,work3,&random_arguments[2],fifo);
   start(t1);
   start(t2);
   start(t3);
