@@ -1,7 +1,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#define QUEUESIZE 1500
+#define QUEUESIZE 2
 
 #include <stdlib.h>
 #include <pthread.h>

@@ -59,6 +59,11 @@ int main(void){
     fprintf (stderr, "Unable to allocate consumer.\n");
     exit (1);
   }
+  // Create c consumer threads
+  for(int j=0;j<c;j++){
+    pthread_create(&con[j], NULL, consumer,(void *)fifo);
+  }
+  
   /*
     Timer structure and funciton pointers allocations
   */
@@ -75,17 +80,12 @@ int main(void){
   /*
     Timer initialization and starting point
   */
-  timerInit(t1,1,10,0,work1,&random_arguments[0],fifo);
-  timerInit(t2,2,10,0,work2,&random_arguments[1],fifo);
-  timerInit(t3,2,10,0,work3,&random_arguments[2],fifo);
+  timerInit(t1,0,10,0,work1,&random_arguments[0],fifo);
+  timerInit(t2,0,10,0,work2,&random_arguments[1],fifo);
+  timerInit(t3,0,10,0,work3,&random_arguments[2],fifo);
   start(t1);
   start(t2);
   start(t3);
-
-  // Create c consumer threads
-  for(int j=0;j<c;j++){
-    pthread_create(&con[j], NULL, consumer,(void *)fifo);
-  }
 
   /*
     Functions that waits all the consumers to finish their work and makes sure that
@@ -110,7 +110,7 @@ int main(void){
   printf("JOINED CONS\n");
 
   /*
-      Free all the allocated space
+    Free all the allocated space
   */
   free(work1);
   free(work2);
