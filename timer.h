@@ -52,8 +52,7 @@ void StartFcn(timer *t);
 
 /*
   StopFcn: Executes after the last instance of the function of the timer completes
-    its execution.It deallocates the space that was allocated for the execution of
-    the timer.
+    its execution.
 */
 void StopFcn(timer *t);
 
@@ -61,6 +60,12 @@ void StopFcn(timer *t);
   ErrorFcn: Buffer overflow handler
 */
 void ErrorFcn(void);
+
+/*
+  TimerStop: It deallocates the space that was allocated for the execution of
+  the timer.
+*/
+void TimerStop(timer *t);
 
 
 #endif

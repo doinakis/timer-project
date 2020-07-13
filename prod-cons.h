@@ -9,8 +9,8 @@
 #include "timer.h"
 #include <unistd.h>
 
-#define   p   2
-#define   c   2
+#define   p   3
+#define   c   3
 
 //functions that simulate jobs added by producers
 void* function_print_1(void* x);

@@ -5,7 +5,6 @@ void *producer(void *q)
 {
   // Pointer to the queue
   queue *fifo;
-  int i;
 
   // Pointer to the timer
   timer *t;
@@ -21,26 +20,16 @@ void *producer(void *q)
 
   // Delay the required amount of seconds
   sleep(t->StartDelay);
-  for (i = 0; i < t->TasksToExecute; i++) {
+  for (int i = 0; i < t->TasksToExecute; i++) {
 
     pthread_mutex_lock(fifo->mut);
-    while(fifo->full) {
+    while(fifo->full){
       printf("producer: queue FULL.\n");
       ErrorFcn();
       pthread_cond_wait(fifo->notFull, fifo->mut);
     }
 
-    //add a random function in the queue and a random argument
-    // workFunction  work;
-    // work.work = functions_array[rand()%8];
-    // pointer = &random_arguments[rand()%10];
-    // work.arg = pointer;
-    /*This part of the code is added for testing purposes*/
-
-    // gettimeofday(&work.start_time,NULL);
-
     queueAdd(fifo, t->TimerFcn);
-    printf("Delay %d.\n",t->TimerFcn->TasksToExecute);
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notEmpty);
     if(i != t->TasksToExecute - 1){
@@ -58,10 +47,9 @@ void *producer(void *q)
   /* When the signal arrives (it means the function executed the required amount
     of times ) unlock the mutex variable
   */
-
   pthread_mutex_unlock(t->TimerFcn->work_mutex);
-  printf("signal received!\n");
   StopFcn(t);
+  TimerStop(t);
   return (NULL);
 }
 
@@ -79,9 +67,7 @@ void *consumer(void *q)
       printf("consumer: queue EMPTY .\n");
       pthread_cond_wait(fifo->notEmpty, fifo->mut);
     }
-    printf("KILL FLAG %d .\n",*kill_flag);
     if(*kill_flag){
-      printf("EXIIIIIT .\n");
       pthread_mutex_unlock(fifo->mut);
       return(NULL);
     }
@@ -101,11 +87,9 @@ void *consumer(void *q)
     pthread_mutex_lock(d.work_mutex);
     *d.times_executed += 1;
     pthread_mutex_unlock(d.work_mutex);
-    printf("alrigt %d!\n",*d.times_executed);
     if(*d.times_executed == d.TasksToExecute){
       *d.done = 1;
       pthread_cond_signal(d.execution_complete);
-      printf("signal send\n");
     }
   }
   return (NULL);

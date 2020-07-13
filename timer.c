@@ -94,23 +94,28 @@ void StartFcn(timer *t){
   // This function can be changed by the user depending on the application
   fprintf(stderr, "Start function for initialization.\n");
 }
+/*
+*/
+void StopFcn(timer *t){
+  fprintf(stderr, "Stop Function.\n");
+}
+
+void ErrorFcn(void){
+  fprintf(stderr, "Buffer overflow!.\n");
+}
 
 /*
   Mutex/Cond destroy and memory deallocation
 */
-void StopFcn(timer *t){
-  fprintf(stderr, "lock...\n");
+void TimerStop(timer *t){
   pthread_mutex_lock(t->q->all_done);
   t->q->global_done++;
-  printf("%d\n",t->q->global_done );
   pthread_mutex_unlock(t->q->all_done);
-  fprintf(stderr, "unlock...\n");
   if(t->q->global_done == p){
     t->q->flag = 1;
-    fprintf(stderr, "signal...\n");
     pthread_cond_signal(t->q->done);
   }
-  fprintf(stderr, "Stop function deallocating space...\n");
+  fprintf(stderr, "Deallocating space...\n");
   free(t->pro);
   // free(t->TimerFcn->delay_time);
   free(t->TimerFcn->times_executed);
@@ -121,8 +126,4 @@ void StopFcn(timer *t){
   free(t->TimerFcn->done);
   free(t);
 
-}
-
-void ErrorFcn(void){
-  fprintf(stderr, "Buffer overflow!.\n");
 }
