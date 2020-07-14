@@ -18,4 +18,4 @@ timer.o: timer.c
 prod-cons.o: prod-cons.c
 			gcc -c -g prod-cons.c
 clean:
-		$(RM)	*.o main
+		$(RM)	*.o main *.csv *.txt *.data

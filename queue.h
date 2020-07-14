@@ -28,10 +28,12 @@ typedef struct{
     variables that hold when a function is added to the queue, when it arrives
     at the consumer and the substraction is the delay_time*/
    struct timeval start_time,end_time;
-   unsigned int delay_time;
+   int delay_time;
    int TasksToExecute;
+   // counts executed counts how many times the function has been executed
    int *times_executed;
    bool *done;
+   // mutex that for variable times_executed
    pthread_mutex_t *work_mutex;
    pthread_cond_t *execution_complete;
 
@@ -41,13 +43,17 @@ typedef struct {
   workFunction *buf[QUEUESIZE];
   long head, tail;
   int full, empty;
+  // global_done: counts how many producers finished their work
   int global_done;
   bool flag;
   /*This part is added for testing purposes
   added mutex variable im_done to update counter whenever a producer is done*/
 
+  // mutex that is used when the global_done variable needs to be changed
   pthread_mutex_t *all_done;
   pthread_mutex_t *mut;
+  /* condition done added to let know the main thread that all the executions
+  where completed */
   pthread_cond_t *notFull, *notEmpty, *done;
 
 } queue;

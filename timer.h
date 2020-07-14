@@ -7,7 +7,7 @@
 
 /*
     ----------Timer Stracture----------
-  Period: Time between 2 calls of the function (in useconds)
+  Period: Time between 2 calls of the function (in milliseconds)
   TasksToExecute: How many times the function will be executed
   StartDelay: Delay on the first run of the function (in seconds)
   TimerFcn: Function to be executed

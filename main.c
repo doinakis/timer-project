@@ -80,9 +80,9 @@ int main(void){
   /*
     Timer initialization and starting point
   */
-  timerInit(t1,1,10,0,work1,&random_arguments[0],fifo);
-  timerInit(t2,0.1,10,0,work2,&random_arguments[1],fifo);
-  timerInit(t3,0.01,10,0,work3,&random_arguments[2],fifo);
+  timerInit(t1,1000,10,0,work1,&random_arguments[0],fifo);
+  timerInit(t2,100,10,0,work2,&random_arguments[1],fifo);
+  timerInit(t3,10,10,0,work3,&random_arguments[2],fifo);
   start(t1);
   start(t2);
   start(t3);
@@ -92,6 +92,7 @@ int main(void){
     all the timers are also done adding their functions in the fifo
   */
   killing((void*)fifo);
+
   /*
     This part is for terminating all the consumer threads properly
   */
@@ -101,6 +102,7 @@ int main(void){
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notEmpty);
   }
+
   /*
     This part is to make sure that all the consumers terminated
   */

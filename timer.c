@@ -7,7 +7,7 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
 
   StartFcn(t);
   // Assingments regarding the timer
-  t->Period = Period*1000000;
+  t->Period = Period*1000;
   t->TasksToExecute = TasksToExecute;
   t->StartDelay = StartDelay;
   t->TimerFcn = TimerFcn;
@@ -110,11 +110,11 @@ void ErrorFcn(void){
 void TimerStop(timer *t){
   pthread_mutex_lock(t->q->all_done);
   t->q->global_done++;
-  pthread_mutex_unlock(t->q->all_done);
   if(t->q->global_done == p){
     t->q->flag = 1;
     pthread_cond_signal(t->q->done);
   }
+  pthread_mutex_unlock(t->q->all_done);
   fprintf(stderr, "Deallocating space...\n");
   free(t->pro);
   // free(t->TimerFcn->delay_time);

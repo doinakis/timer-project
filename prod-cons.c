@@ -17,17 +17,29 @@ void *producer(void *q)
   t = (timer *)q;
   // Fifo now points at q
   fifo = t->q;
-  int adjust = t->Period;
+  FILE *f;
+
+  char name[15];
+  sprintf(name,"drift_%d.csv",((t->Period)/1000));
+  f = fopen(name,"wb");
+  int drift_calc[t->TasksToExecute];
+  int adjust = t->Period; // Period*1000 to convert to microseconds
+  printf("%d\n", adjust);
   // Delay the required amount of seconds
   sleep(t->StartDelay);
   for(int i = 0; i < t->TasksToExecute; i++) {
     gettimeofday(&t->TimerFcn->start_time,NULL);
     pthread_mutex_lock(fifo->mut);
+    /*
+      If the fifo is full then the function misses its execution waits the Period
+    and tries at the next period
+    */
     if(fifo->full){
-      //printf("producer: queue FULL.\n");
+
+      // Handling of the buffer overflow by the user
       ErrorFcn();
-      // pthread_cond_wait(fifo->notFull,fifo->mut);
       pthread_mutex_unlock(fifo->mut);
+      // Count that to the times times_executed although the function is dropped
       pthread_mutex_lock(t->TimerFcn->work_mutex);
       *t->TimerFcn->times_executed += 1;
       if(*t->TimerFcn->times_executed == t->TimerFcn->TasksToExecute){
@@ -38,11 +50,12 @@ void *producer(void *q)
       if(i != t->TasksToExecute - 1){
         usleep(adjust);
       }
+      // Drift calculation and Period adjustment
       gettimeofday(&t->TimerFcn->end_time,NULL);
       t->TimerFcn->delay_time = (unsigned int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
       adjust = adjust - t->TimerFcn->delay_time;
       if(adjust < 0) adjust = 0;
-      printf("%d\n",t->TimerFcn->delay_time);
+      drift_calc[i] = t->TimerFcn->delay_time;
       continue;
     }
 
@@ -52,12 +65,13 @@ void *producer(void *q)
     if(i != t->TasksToExecute - 1){
       usleep(adjust);
     }
+    // Drift calculation and Period adjustment
     gettimeofday(&t->TimerFcn->end_time,NULL);
     t->TimerFcn->delay_time = (unsigned int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
     adjust = adjust - t->TimerFcn->delay_time;
 
     if(adjust < 0) adjust = 0;
-    printf("%d\n",t->TimerFcn->delay_time);
+    drift_calc[i] = t->TimerFcn->delay_time;
 
   }
   // Lock the mutex to check the done variable
@@ -72,6 +86,11 @@ void *producer(void *q)
     of times ) unlock the mutex variable
   */
   pthread_mutex_unlock(t->TimerFcn->work_mutex);
+  for(int i=0;i<t->TasksToExecute;i++){
+    fprintf(f,"%d\n",drift_calc[i] );
+  }
+  //fwrite(drift_calc, sizeof(int), t->TasksToExecute, f);
+  fclose(f);
   StopFcn(t);
   TimerStop(t);
   return (NULL);
@@ -107,7 +126,12 @@ void *consumer(void *q)
         files etc.)
     */
     (*d.work)(d.arg);
-    //*d.delay_time += 1;
+
+    /* right after the execution update the execution times for the corresponding
+      function. If the execution times are equal to the tasks executed then it
+      sends a signal to the producer thread that the executions are done so that
+      it can run the stop function for that timer
+      */
     pthread_mutex_lock(d.work_mutex);
     *d.times_executed += 1;
     if(*d.times_executed == d.TasksToExecute){
@@ -135,9 +159,10 @@ void*  function_print_2(void* arg){
 void* function_sin(void* arg){
   srand(time(NULL));
   //compute 10 random integer sins
-  for(int i =0; i < 9; i++){
-    sin(rand() % 361);
-  }
+  // for(int i =0; i < 9; i++){
+  //   sin(rand() % 361);
+  // }
+  printf("Function 3 called randomly, the random argument is : %d  \n",*((int *) arg));
   return (NULL);
 }
 
