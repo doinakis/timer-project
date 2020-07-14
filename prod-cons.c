@@ -49,13 +49,21 @@ void *producer(void *q)
       pthread_mutex_unlock(t->TimerFcn->work_mutex);
       if(i != t->TasksToExecute - 1){
         usleep(adjust);
+        // Drift calculation and Period adjustment
+        gettimeofday(&t->TimerFcn->end_time,NULL);
+        t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
+        adjust = adjust - t->TimerFcn->delay_time;
+        if(adjust < 0) adjust = 0;
+        drift_calc[i] = t->TimerFcn->delay_time;
+      }else{
+        // Drift calculation and Period adjustment
+        gettimeofday(&t->TimerFcn->end_time,NULL);
+        t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06));
+        adjust = adjust - t->TimerFcn->delay_time;
+
+        if(adjust < 0) adjust = 0;
+        drift_calc[i] = t->TimerFcn->delay_time;
       }
-      // Drift calculation and Period adjustment
-      gettimeofday(&t->TimerFcn->end_time,NULL);
-      t->TimerFcn->delay_time = (unsigned int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
-      adjust = adjust - t->TimerFcn->delay_time;
-      if(adjust < 0) adjust = 0;
-      drift_calc[i] = t->TimerFcn->delay_time;
       continue;
     }
 
@@ -64,15 +72,22 @@ void *producer(void *q)
     pthread_cond_signal(fifo->notEmpty);
     if(i != t->TasksToExecute - 1){
       usleep(adjust);
+      // Drift calculation and Period adjustment
+      gettimeofday(&t->TimerFcn->end_time,NULL);
+      t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
+      adjust = adjust - t->TimerFcn->delay_time;
+
+      if(adjust < 0) adjust = 0;
+      drift_calc[i] = t->TimerFcn->delay_time;
+    }else{
+      // Drift calculation and Period adjustment
+      gettimeofday(&t->TimerFcn->end_time,NULL);
+      t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06));
+      adjust = adjust - t->TimerFcn->delay_time;
+
+      if(adjust < 0) adjust = 0;
+      drift_calc[i] = t->TimerFcn->delay_time;
     }
-    // Drift calculation and Period adjustment
-    gettimeofday(&t->TimerFcn->end_time,NULL);
-    t->TimerFcn->delay_time = (unsigned int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
-    adjust = adjust - t->TimerFcn->delay_time;
-
-    if(adjust < 0) adjust = 0;
-    drift_calc[i] = t->TimerFcn->delay_time;
-
   }
   // Lock the mutex to check the done variable
   pthread_mutex_lock(t->TimerFcn->work_mutex);
