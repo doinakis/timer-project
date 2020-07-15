@@ -3,9 +3,9 @@
 extern int *kill_flag;
 void *producer(void *q)
 {
-  // Pointer to the queue
   queue *fifo;
-
+  int delay_time;
+  struct timeval start_time,end_time;
   // Pointer to the timer
   timer *t;
   // Add a void variable to pass the integer as void * type to the function
@@ -17,18 +17,21 @@ void *producer(void *q)
   t = (timer *)q;
   // Fifo now points at q
   fifo = t->q;
-  FILE *f;
+  FILE *f1,*f2;
 
-  char name[15];
-  sprintf(name,"drift_%d.csv",((t->Period)/1000));
-  f = fopen(name,"wb");
+  char name1[15];
+  char name2[15];
+  sprintf(name1,"drift_%d.csv",((t->Period)/1000));
+  sprintf(name2,"cons_%d.csv",((t->Period)/1000));
+  f1 = fopen(name1,"wb");
+  f2 = fopen(name2,"wb");
   int drift_calc[t->TasksToExecute];
   int adjust = t->Period; // Period*1000 to convert to microseconds
   printf("%d\n", adjust);
   // Delay the required amount of seconds
   sleep(t->StartDelay);
   for(int i = 0; i < t->TasksToExecute; i++) {
-    gettimeofday(&t->TimerFcn->start_time,NULL);
+    gettimeofday(&start_time,NULL);
     pthread_mutex_lock(fifo->mut);
     /*
       If the fifo is full then the function misses its execution waits the Period
@@ -41,6 +44,7 @@ void *producer(void *q)
       pthread_mutex_unlock(fifo->mut);
       // Count that to the times times_executed although the function is dropped
       pthread_mutex_lock(t->TimerFcn->work_mutex);
+      t->TimerFcn->cons_delay[*t->TimerFcn->times_executed] = -1;
       *t->TimerFcn->times_executed += 1;
       if(*t->TimerFcn->times_executed == t->TimerFcn->TasksToExecute){
         *t->TimerFcn->done = 1;
@@ -50,19 +54,19 @@ void *producer(void *q)
       if(i != t->TasksToExecute - 1){
         usleep(adjust);
         // Drift calculation and Period adjustment
-        gettimeofday(&t->TimerFcn->end_time,NULL);
-        t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
-        adjust = adjust - t->TimerFcn->delay_time;
+        gettimeofday(&end_time,NULL);
+        delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06 - t->Period));
+        adjust = adjust - delay_time;
         if(adjust < 0) adjust = 0;
-        drift_calc[i] = t->TimerFcn->delay_time;
+        drift_calc[i] = delay_time;
       }else{
         // Drift calculation and Period adjustment
-        gettimeofday(&t->TimerFcn->end_time,NULL);
-        t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06));
-        adjust = adjust - t->TimerFcn->delay_time;
+        gettimeofday(&end_time,NULL);
+        delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
+        adjust = adjust - delay_time;
 
         if(adjust < 0) adjust = 0;
-        drift_calc[i] = t->TimerFcn->delay_time;
+        drift_calc[i] = delay_time;
       }
       continue;
     }
@@ -73,20 +77,20 @@ void *producer(void *q)
     if(i != t->TasksToExecute - 1){
       usleep(adjust);
       // Drift calculation and Period adjustment
-      gettimeofday(&t->TimerFcn->end_time,NULL);
-      t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06 - t->Period));
-      adjust = adjust - t->TimerFcn->delay_time;
+      gettimeofday(&end_time,NULL);
+      delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06 - t->Period));
+      adjust = adjust - delay_time;
 
       if(adjust < 0) adjust = 0;
-      drift_calc[i] = t->TimerFcn->delay_time;
+      drift_calc[i] = delay_time;
     }else{
       // Drift calculation and Period adjustment
-      gettimeofday(&t->TimerFcn->end_time,NULL);
-      t->TimerFcn->delay_time = (int)((t->TimerFcn->end_time.tv_usec-t->TimerFcn->start_time.tv_usec + (t->TimerFcn->end_time.tv_sec-t->TimerFcn->start_time.tv_sec)*1e06));
-      adjust = adjust - t->TimerFcn->delay_time;
+      gettimeofday(&end_time,NULL);
+      delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
+      adjust = adjust - delay_time;
 
       if(adjust < 0) adjust = 0;
-      drift_calc[i] = t->TimerFcn->delay_time;
+      drift_calc[i] = delay_time;
     }
   }
   // Lock the mutex to check the done variable
@@ -97,16 +101,18 @@ void *producer(void *q)
     // Wait for execution complete signal and unlock the variable
     pthread_cond_wait(t->TimerFcn->execution_complete,t->TimerFcn->work_mutex);
   }
+  StopFcn(t);
   /* When the signal arrives (it means the function executed the required amount
     of times ) unlock the mutex variable
   */
   pthread_mutex_unlock(t->TimerFcn->work_mutex);
   for(int i=0;i<t->TasksToExecute;i++){
-    fprintf(f,"%d\n",drift_calc[i] );
+    fprintf(f1,"%d\n",drift_calc[i]);
+    fprintf(f2,"%d\n",t->TimerFcn->cons_delay[i]);
   }
   //fwrite(drift_calc, sizeof(int), t->TasksToExecute, f);
-  fclose(f);
-  StopFcn(t);
+  fclose(f1);
+  fclose(f2);
   TimerStop(t);
   return (NULL);
 }
@@ -117,21 +123,25 @@ void *consumer(void *q)
   // Make d a workFunction variable
   workFunction d;
   fifo = (queue *)q;
-
+  int delay_time;
+  struct timeval start_time,end_time;
   // Change the loop to while 1
   while(1){
+    
     pthread_mutex_lock(fifo->mut);
     while (fifo->empty) {
       printf("consumer: queue EMPTY .\n");
       pthread_cond_wait(fifo->notEmpty, fifo->mut);
     }
+    
     if(*kill_flag){
       pthread_mutex_unlock(fifo->mut);
       return(NULL);
     }
-
+    gettimeofday(&start_time,NULL);
     // d is a workFunction variable produced by the producer
     queueDel(fifo, &d);
+    
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notFull);
 
@@ -140,14 +150,15 @@ void *consumer(void *q)
         its execution doesnt interfere with other executions(e.g write at the same
         files etc.)
     */
+    gettimeofday(&end_time,NULL);
     (*d.work)(d.arg);
-
-    /* right after the execution update the execution times for the corresponding
+    /* Right after the execution update the execution times for the corresponding
       function. If the execution times are equal to the tasks executed then it
       sends a signal to the producer thread that the executions are done so that
       it can run the stop function for that timer
       */
     pthread_mutex_lock(d.work_mutex);
+    d.cons_delay[*d.times_executed] = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
     *d.times_executed += 1;
     if(*d.times_executed == d.TasksToExecute){
       *d.done = 1;

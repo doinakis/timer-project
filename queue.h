@@ -24,18 +24,14 @@ typedef struct{
 
   void *(*work)(void*);
   void *arg;
-  /*This part is added for testing purposes
-    variables that hold when a function is added to the queue, when it arrives
-    at the consumer and the substraction is the delay_time*/
-   struct timeval start_time,end_time;
-   int delay_time;
-   int TasksToExecute;
-   // counts executed counts how many times the function has been executed
-   int *times_executed;
-   bool *done;
-   // mutex that for variable times_executed
-   pthread_mutex_t *work_mutex;
-   pthread_cond_t *execution_complete;
+  int TasksToExecute;
+  int *cons_delay;
+  // counts executed counts how many times the function has been executed
+  int *times_executed;
+  bool *done;
+  // mutex that for variable times_executed
+  pthread_mutex_t *work_mutex;
+  pthread_cond_t *execution_complete;
 
 }workFunction;
 

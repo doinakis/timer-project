@@ -22,6 +22,7 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
     fprintf(stderr, "Unable to allocate producer.\n");
     exit (1);
   }
+  t->TimerFcn->cons_delay = (int *)malloc(TasksToExecute*sizeof(int));
   *t->TimerFcn->times_executed = 0;
   t->TimerFcn->done = (bool *)malloc(sizeof(bool));
   *t->TimerFcn->done = 0;
