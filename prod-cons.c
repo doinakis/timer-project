@@ -1,15 +1,14 @@
 #include "prod-cons.h"
 
-extern int *kill_flag;
 void *producer(void *q)
 {
   queue *fifo;
+  // Drift due to the consumer delay  
   int delay_time;
   struct timeval start_time,end_time;
   // Pointer to the timer
   timer *t;
-  // Add a void variable to pass the integer as void * type to the function
-  void * pointer;
+
   // Srand to pick a function at random
   srand(time(NULL));
 
@@ -17,8 +16,9 @@ void *producer(void *q)
   t = (timer *)q;
   // Fifo now points at q
   fifo = t->q;
-  FILE *f1,*f2;
 
+  // Files to write the results of the experiments 
+  FILE *f1,*f2;
   char name1[15];
   char name2[15];
   sprintf(name1,"drift_%d.csv",((t->Period)/1000));
@@ -26,8 +26,7 @@ void *producer(void *q)
   f1 = fopen(name1,"wb");
   f2 = fopen(name2,"wb");
   int drift_calc[t->TasksToExecute];
-  int adjust = t->Period; // Period*1000 to convert to microseconds
-  printf("%d\n", adjust);
+  int adjust = t->Period;
   // Delay the required amount of seconds
   sleep(t->StartDelay);
   for(int i = 0; i < t->TasksToExecute; i++) {
@@ -42,7 +41,8 @@ void *producer(void *q)
       // Handling of the buffer overflow by the user
       ErrorFcn();
       pthread_mutex_unlock(fifo->mut);
-      // Count that to the times times_executed although the function is dropped
+
+      // Althoug the function doesn't execute it misses its execution
       pthread_mutex_lock(t->TimerFcn->work_mutex);
       t->TimerFcn->cons_delay[*t->TimerFcn->times_executed] = -1;
       *t->TimerFcn->times_executed += 1;
@@ -53,21 +53,15 @@ void *producer(void *q)
       pthread_mutex_unlock(t->TimerFcn->work_mutex);
       if(i != t->TasksToExecute - 1){
         usleep(adjust);
-        // Drift calculation and Period adjustment
-        gettimeofday(&end_time,NULL);
-        delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06 - t->Period));
-        adjust = adjust - delay_time;
-        if(adjust < 0) adjust = 0;
-        drift_calc[i] = delay_time;
-      }else{
-        // Drift calculation and Period adjustment
-        gettimeofday(&end_time,NULL);
-        delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
-        adjust = adjust - delay_time;
-
-        if(adjust < 0) adjust = 0;
-        drift_calc[i] = delay_time;
+        delay_time = -t->Period;
       }
+      // Drift calculation and Period adjustment
+      gettimeofday(&end_time,NULL);
+      delay_time += (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
+      adjust = adjust - delay_time;
+
+      if(adjust < 0) adjust = 0;
+      drift_calc[i] = delay_time;
       continue;
     }
 
@@ -76,22 +70,16 @@ void *producer(void *q)
     pthread_cond_signal(fifo->notEmpty);
     if(i != t->TasksToExecute - 1){
       usleep(adjust);
-      // Drift calculation and Period adjustment
-      gettimeofday(&end_time,NULL);
-      delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06 - t->Period));
-      adjust = adjust - delay_time;
-
-      if(adjust < 0) adjust = 0;
-      drift_calc[i] = delay_time;
-    }else{
-      // Drift calculation and Period adjustment
-      gettimeofday(&end_time,NULL);
-      delay_time = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
-      adjust = adjust - delay_time;
-
-      if(adjust < 0) adjust = 0;
-      drift_calc[i] = delay_time;
+      delay_time = -t->Period;
     }
+    // Drift calculation and Period adjustment
+    gettimeofday(&end_time,NULL);
+    delay_time += (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
+    adjust = adjust - delay_time;
+
+    if(adjust < 0) adjust = 0;
+    drift_calc[i] = delay_time;
+    
   }
   // Lock the mutex to check the done variable
   pthread_mutex_lock(t->TimerFcn->work_mutex);
@@ -101,16 +89,18 @@ void *producer(void *q)
     // Wait for execution complete signal and unlock the variable
     pthread_cond_wait(t->TimerFcn->execution_complete,t->TimerFcn->work_mutex);
   }
+  // Run the StopFcn
   StopFcn(t);
   /* When the signal arrives (it means the function executed the required amount
-    of times ) unlock the mutex variable
+    of times) unlock the mutex variable
   */
   pthread_mutex_unlock(t->TimerFcn->work_mutex);
+  // The producer is respnsible of writing the results to the files
   for(int i=0;i<t->TasksToExecute;i++){
     fprintf(f1,"%d\n",drift_calc[i]);
     fprintf(f2,"%d\n",t->TimerFcn->cons_delay[i]);
   }
-  //fwrite(drift_calc, sizeof(int), t->TasksToExecute, f);
+
   fclose(f1);
   fclose(f2);
   TimerStop(t);
@@ -134,7 +124,7 @@ void *consumer(void *q)
       pthread_cond_wait(fifo->notEmpty, fifo->mut);
     }
     
-    if(*kill_flag){
+    if(kill_flag){
       pthread_mutex_unlock(fifo->mut);
       return(NULL);
     }

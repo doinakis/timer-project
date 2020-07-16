@@ -1,16 +1,11 @@
 #ifndef PRODCONS_H
 #define PRODCONS_H
 
-#include <pthread.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include "globaldef.h"
 #include "queue.h"
 #include "timer.h"
-#include <unistd.h>
 
-#define   p   3
-#define   c   1
+
 
 //functions that simulate jobs added by producers
 void* function_print_1(void* x);

@@ -3,14 +3,37 @@
 /*
   Initializes the timer parameters
 */
-void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction *TimerFcn,void *UserData,queue *q){
+void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay,void *(*TimerFcn)(void *),void *UserData,queue *q){
 
   StartFcn(t);
+  producers++;
+  // If its the first producer then create the consumer threads 
+  if(producers == 1){
+
+    /*
+      Initialization of the consumer threads
+    */
+    con = (pthread_t *)malloc(c*sizeof(pthread_t));
+    if(con == NULL){
+      fprintf (stderr, "Timer.c: Unable to allocate consumer.\n");
+      exit(1);
+    }
+    // Create c consumer threads
+    for(int j=0;j<c;j++){
+      pthread_create(&con[j], NULL, consumer,(void *)q);
+    }
+    
+  }
   // Assingments regarding the timer
   t->Period = Period*1000;
   t->TasksToExecute = TasksToExecute;
   t->StartDelay = StartDelay;
-  t->TimerFcn = TimerFcn;
+  t->TimerFcn = (workFunction *)malloc(sizeof(workFunction));
+  if(t->TimerFcn == NULL){
+    fprintf(stderr, "Timer.c: Unable to allocate TimerFcn.\n");
+    exit(1);
+  }
+  t->TimerFcn->work = TimerFcn;
   t->UserData = UserData;
   t->q = q;
 
@@ -19,36 +42,36 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunct
   t->TimerFcn->TasksToExecute = TasksToExecute;
   t->TimerFcn->times_executed = (int *)malloc(sizeof(int));
   if(t->TimerFcn->times_executed == NULL){
-    fprintf(stderr, "Unable to allocate producer.\n");
-    exit (1);
+    fprintf(stderr, "Timer.c: Unable to allocate times_executed.\n");
+    exit(1);
   }
   t->TimerFcn->cons_delay = (int *)malloc(TasksToExecute*sizeof(int));
   *t->TimerFcn->times_executed = 0;
   t->TimerFcn->done = (bool *)malloc(sizeof(bool));
   *t->TimerFcn->done = 0;
   if(t->TimerFcn->done == NULL){
-    fprintf(stderr, "Unable to allocate producer.\n");
-    exit (1);
+    fprintf(stderr, "Timer.c: Unable to allocate done.\n");
+    exit(1);
   }
   *t->TimerFcn->done = 0;
   t->TimerFcn->work_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
   if(t->TimerFcn->work_mutex == NULL){
-    fprintf(stderr, "Unable to allocate producer.\n");
-    exit (1);
+    fprintf(stderr, "Timer.c: Unable to allocate work_mutex.\n");
+    exit(1);
   }
   pthread_mutex_init(t->TimerFcn->work_mutex,NULL);
-  t->TimerFcn->execution_complete = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
+  t->TimerFcn->execution_complete = (pthread_cond_t *)malloc(sizeof(pthread_cond_t));
   if(t->TimerFcn->execution_complete == NULL){
-    fprintf(stderr, "Unable to allocate producer.\n");
-    exit (1);
+    fprintf(stderr, "Timer.c: Unable to allocate execution_complete\n");
+    exit(1);
   }
   pthread_cond_init(t->TimerFcn->execution_complete, NULL);
 
   // Producer thread allocation for the timer
   t->pro = (pthread_t *)malloc(sizeof(pthread_t));
   if(t->pro == NULL){
-    fprintf(stderr, "Unable to allocate producer.\n");
-    exit (1);
+    fprintf(stderr, "Timer.c: Unable to allocate producers.\n");
+    exit(1);
   }
 
 }
@@ -82,7 +105,6 @@ void startat(timer *t,int y,int m,int d,int h,int min,int sec){
   */
 
   if(seconds < 0) seconds = 0;
-  seconds = seconds;
   // Add the additional delay to the StartDelay variable
   t->StartDelay += seconds;
 
@@ -109,22 +131,29 @@ void ErrorFcn(void){
   Mutex/Cond destroy and memory deallocation
 */
 void TimerStop(timer *t){
-  pthread_mutex_lock(t->q->all_done);
-  t->q->global_done++;
-  if(t->q->global_done == p){
-    t->q->flag = 1;
-    pthread_cond_signal(t->q->done);
-  }
-  pthread_mutex_unlock(t->q->all_done);
+
   fprintf(stderr, "Deallocating space...\n");
   free(t->pro);
-  // free(t->TimerFcn->delay_time);
   free(t->TimerFcn->times_executed);
   pthread_mutex_destroy(t->TimerFcn->work_mutex);
   free(t->TimerFcn->work_mutex);
   pthread_cond_destroy(t->TimerFcn->execution_complete);
   free(t->TimerFcn->execution_complete);
   free(t->TimerFcn->done);
+  free(t->TimerFcn->cons_delay);
+  free(t->TimerFcn);
   free(t);
+
+  /*
+    Update the global_done variable and if all the producers are done 
+      send signal to main to move on 
+  */
+  pthread_mutex_lock(all_done);
+  global_done++;
+  if(global_done == producers){
+    flag = 1;
+    pthread_cond_signal(done);
+  }
+  pthread_mutex_unlock(all_done);
 
 }

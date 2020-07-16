@@ -1,9 +1,9 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "globaldef.h"
 #include "queue.h"
 #include "prod-cons.h"
-#include <time.h>
 
 /*
     ----------Timer Stracture----------
@@ -16,6 +16,7 @@
   pro: The producer assigned with the timer
 */
 typedef struct {
+
   int Period;
   int TasksToExecute;
   int StartDelay;
@@ -23,6 +24,7 @@ typedef struct {
   void *UserData;
   queue *q;
   pthread_t *pro;
+
 } timer;
 
 /*
@@ -31,7 +33,7 @@ typedef struct {
     given in main by the user. StartFcn executes at the start. StartFcn may change
     by the user to initialize UserData for the TimerFcn
 */
-void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay, workFunction *TimerFcn,void *UserData,queue *q);
+void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay,void *(*TimerFcn)(void *),void *UserData,queue *q);
 
 /*
   start: Creates a producer thread that runs the timer

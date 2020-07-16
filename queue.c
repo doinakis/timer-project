@@ -7,8 +7,6 @@ queue *queueInit (void)
 
   q = (queue *)malloc(sizeof (queue));
   if (q == NULL) return (NULL);
-  q->global_done = 0;
-  q->flag = 0;
   q->empty = 1;
   q->full = 0;
   q->head = 0;
@@ -16,17 +14,10 @@ queue *queueInit (void)
   q->mut = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
   pthread_mutex_init(q->mut, NULL);
 
-  /*This part of the code is added for testing purposes*/
-
-  q->all_done = (pthread_mutex_t *) malloc (sizeof (pthread_mutex_t));
-  pthread_mutex_init (q->all_done, NULL);
-
   q->notFull = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
   pthread_cond_init(q->notFull, NULL);
   q->notEmpty = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
   pthread_cond_init(q->notEmpty, NULL);
-  q->done = (pthread_cond_t *)malloc(sizeof (pthread_cond_t));
-  pthread_cond_init(q->done, NULL);
 
   return (q);
 }
@@ -35,19 +26,10 @@ void queueDelete(queue *q)
 {
   pthread_mutex_destroy(q->mut);
   free(q->mut);
-  pthread_mutex_destroy(q->all_done);
-  free(q->all_done);
-  /*This part of the code is added for testing purposes*/
-
-  // pthread_mutex_destroy (q->im_done);
-  // free (q->im_done);
-
   pthread_cond_destroy(q->notFull);
   free(q->notFull);
   pthread_cond_destroy(q->notEmpty);
   free(q->notEmpty);
-  pthread_cond_destroy(q->done);
-  free(q->done);
   free(q);
 }
 
