@@ -150,6 +150,7 @@ void TimerStop(timer *t){
   free(t->TimerFcn->execution_complete);
   free(t->TimerFcn->done);
   free(t->TimerFcn->cons_delay);
+  free(t->TimerFcn->queue_lag);
   free(t->TimerFcn);
   free(t);
 
