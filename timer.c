@@ -45,8 +45,17 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay,void *(*Ti
     fprintf(stderr, "Timer.c: Unable to allocate times_executed.\n");
     exit(1);
   }
-  t->TimerFcn->cons_delay = (int *)malloc(TasksToExecute*sizeof(int));
   *t->TimerFcn->times_executed = 0;
+  t->TimerFcn->cons_delay = (int *)malloc(TasksToExecute*sizeof(int));
+  if(t->TimerFcn->cons_delay == NULL){
+    fprintf(stderr, "Timer.c: Unable to allocate cons_delay.\n");
+    exit(1);
+  }
+  t->TimerFcn->queue_lag = (int *)malloc(TasksToExecute*sizeof(int));
+  if(t->TimerFcn->queue_lag == NULL){
+    fprintf(stderr, "Timer.c: Unable to allocate queue_lag.\n");
+    exit(1);
+  }
   t->TimerFcn->done = (bool *)malloc(sizeof(bool));
   *t->TimerFcn->done = 0;
   if(t->TimerFcn->done == NULL){

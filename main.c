@@ -5,48 +5,12 @@
 #include "queue.h"
 #include "prod-cons.h"
 
-
-/*
-  Killing: its a function that takes as an argument a queue and waits until the
-  flag bool is true. If all the consumers are done and the dead flag is true then
-  the kill flag is set to 1 and all the consumers can now terminate. It waits a
-  done signal that is sent by the last active timer.
-*/
-void *killing(void *dead_queue){
-  queue *dead = (queue *)dead_queue;
-  pthread_mutex_lock(all_done);
-  while(!flag){
-    pthread_cond_wait(done,all_done);
-  }
-  kill_flag = 1;
-  pthread_mutex_unlock(all_done);
-  printf("DO WHATEVER \n");
-  return(NULL);
-
-}
-
-
 int main(void){
-  
+
   /*
-    Global variable/mutex/cond initialization 
+    Initialization of the global variables
   */
-  kill_flag = 0;
-  global_done = 0;
-  flag =0;
-  producers = 0;
-  all_done = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-  if(all_done == NULL){
-      fprintf (stderr, "Main: Unable to allocate all done mutex.\n");
-      exit(1);
-  }
-  pthread_mutex_init (all_done, NULL);
-  done = (pthread_cond_t *)malloc(sizeof(pthread_cond_t));
-  if(done == NULL){
-      fprintf (stderr, "Main: Unable to allocate done condition.\n");
-      exit(1);
-  }
-  pthread_cond_init(done, NULL);
+  globalInit();
 
   /*
     Initialization of the fifo queue where the producer add the functions and the
@@ -84,7 +48,7 @@ int main(void){
     Function that waits all the consumers to finish their work and makes sure that
     all the timers are also done adding their functions in the fifo
   */
-  killing((void*)fifo);
+  killing();
 
   /*
     This part is for terminating all the consumer threads properly
@@ -115,6 +79,7 @@ int main(void){
   free(con);
   queueDelete(fifo);
   printf("THE END...\n");
+  
   return 0;
   
 }
