@@ -8,16 +8,16 @@
 all:	main
 
 main:	main.o queue.o timer.o prod-cons.o globaldef.o
-			gcc -o3 -pthread queue.o timer.o prod-cons.o globaldef.o  main.o -o main -lm
+			arm-linux-gnueabihf-gcc -o3 -pthread queue.o timer.o prod-cons.o globaldef.o  main.o -o main -lm
 main.o: main.c
-			gcc -c  main.c
+			arm-linux-gnueabihf-gcc -c  main.c
 queue.o: queue.c
-			gcc -c  queue.c
+			arm-linux-gnueabihf-gcc -c  queue.c
 timer.o: timer.c
-			gcc -c  timer.c
+			arm-linux-gnueabihf-gcc -c  timer.c
 prod-cons.o: prod-cons.c
-			gcc -c  prod-cons.c
+			arm-linux-gnueabihf-gcc -c  prod-cons.c
 globaldef.o: globaldef.c
-			gcc -c globaldef.c
+			arm-linux-gnueabihf-gcc -c globaldef.c
 clean:
 		$(RM)	*.o main *.csv *.txt *.data

@@ -39,6 +39,7 @@ pthread_cond_t *done;
     Initializes all the gloal variables to their default values
 */
 void globalInit(void);
+
 /*
   Killing: its a function that takes as an argument a queue and waits until the
   flag bool is true. If all the consumers are done and the dead flag is true then
