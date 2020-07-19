@@ -6,6 +6,7 @@ void *producer(void *q)
   // Drift due to the consumer delay  
   int delay_time;
   struct timeval start_time,end_time;
+  struct timeval start_prods,end_prods;
   // Pointer to the timer
   timer *t;
 
@@ -18,6 +19,7 @@ void *producer(void *q)
   fifo = t->q;
 
   int drift_calc[t->TasksToExecute];
+  int prods_delay[t->TasksToExecute];
   int adjust = t->Period;
   // Delay the required amount of seconds
   sleep(t->StartDelay);
@@ -33,10 +35,11 @@ void *producer(void *q)
       // Handling of the buffer overflow by the user
       ErrorFcn();
       pthread_mutex_unlock(fifo->mut);
-
+    
       // Althoug the function doesn't execute it misses its execution
       pthread_mutex_lock(t->TimerFcn->work_mutex);
       t->TimerFcn->cons_delay[*t->TimerFcn->times_executed] = -INT_MAX;
+      prods_delay[*t->TimerFcn->times_executed] = -INT_MAX;
       *t->TimerFcn->times_executed += 1;
       if(*t->TimerFcn->times_executed == t->TimerFcn->TasksToExecute){
         *t->TimerFcn->done = 1;
@@ -58,8 +61,11 @@ void *producer(void *q)
     }
     gettimeofday(&t->TimerFcn->queue_in,NULL);
     queueAdd(fifo, t->TimerFcn);
+    
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notEmpty);
+    gettimeofday(&end_prods,NULL);
+    prods_delay[i] = (int)((end_prods.tv_usec-t->TimerFcn->queue_in.tv_usec + (end_prods.tv_sec-t->TimerFcn->queue_in.tv_sec)*1e06));
     if(i != t->TasksToExecute - 1){
       usleep(adjust);
       delay_time = -t->Period;
@@ -90,26 +96,31 @@ void *producer(void *q)
   StopFcn(t);
 
   // Files to write the results of the experiments 
-  FILE *f1,*f2,*f3;
+  FILE *f1,*f2,*f3,*f4;
   char name1[15];
   char name2[15];
   char name3[20];
+  char name4[15];
   sprintf(name1,"drift_%d.csv",((t->Period)/1000));
   sprintf(name2,"cons_%d.csv",((t->Period)/1000));
+  sprintf(name4,"prods_%d.csv",((t->Period)/1000));
   sprintf(name3,"queuelag%d.csv",((t->Period)/1000));
   f1 = fopen(name1,"wb");
   f2 = fopen(name2,"wb");
   f3 = fopen(name3,"wb");
+  f4 = fopen(name4,"wb");
   // The producer is respnsible of writing the results to the files
   for(int i=0;i<t->TasksToExecute;i++){
     fprintf(f1,"%d\n",drift_calc[i]);
     fprintf(f2,"%d\n",t->TimerFcn->cons_delay[i]);
     fprintf(f3,"%d\n",t->TimerFcn->queue_lag[i]);
+    fprintf(f4,"%d\n",prods_delay[i]);
   }
 
   fclose(f1);
   fclose(f2);
   fclose(f3);
+  fclose(f4);
   TimerStop(t);
   return (NULL);
 }
@@ -127,7 +138,7 @@ void *consumer(void *q)
     
     pthread_mutex_lock(fifo->mut);
     while (fifo->empty) {
-      printf("consumer: queue EMPTY .\n");
+      //printf("consumer: queue EMPTY .\n");
       pthread_cond_wait(fifo->notEmpty, fifo->mut);
     }
     

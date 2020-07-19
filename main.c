@@ -33,9 +33,9 @@ int main(void){
   /*
     Timer initialization and starting point
   */
-  timerInit(t1,1000,3600,0,functions_array[0],&random_arguments[0],fifo);
-  timerInit(t2,100,36000,0,functions_array[1],&random_arguments[1],fifo);
-  timerInit(t3,10,360000,0,functions_array[2],&random_arguments[2],fifo);
+  timerInit(t1,1000,10,0,functions_array[0],&random_arguments[0],fifo);
+  timerInit(t2,100,100,0,functions_array[1],&random_arguments[1],fifo);
+  timerInit(t3,10,1000,0,functions_array[2],&random_arguments[2],fifo);
   start(t1);
   start(t2);
   start(t3);
@@ -67,7 +67,6 @@ int main(void){
   for(int j=0;j<c;j++){
     pthread_join (con[j], NULL);
   }
-  printf("JOINED CONS\n");
 
   /*
     Free all the allocated space and destroy the mutexes and conditions 

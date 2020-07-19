@@ -14,8 +14,8 @@
 /*
     Define the queuesize and the number of consumers 
 */
-#define QUEUESIZE 10
-#define c 2
+#define QUEUESIZE 100
+#define c 1
 
 /*
     con: consumer threads
