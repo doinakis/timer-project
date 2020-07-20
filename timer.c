@@ -51,6 +51,7 @@ void timerInit(timer *t, int Period,int TasksToExecute,int StartDelay,void *(*Ti
     fprintf(stderr, "Timer.c: Unable to allocate cons_delay.\n");
     exit(1);
   }
+  t->TimerFcn->queue_in = (struct timeval *)malloc(TasksToExecute*sizeof(struct timeval));
   t->TimerFcn->queue_lag = (int *)malloc(TasksToExecute*sizeof(int));
   if(t->TimerFcn->queue_lag == NULL){
     fprintf(stderr, "Timer.c: Unable to allocate queue_lag.\n");
@@ -151,6 +152,7 @@ void TimerStop(timer *t){
   free(t->TimerFcn->done);
   free(t->TimerFcn->cons_delay);
   free(t->TimerFcn->queue_lag);
+  free(t->TimerFcn->queue_in);
   free(t->TimerFcn);
   free(t);
 

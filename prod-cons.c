@@ -59,13 +59,13 @@ void *producer(void *q)
       drift_calc[i] = delay_time;
       continue;
     }
-    gettimeofday(&t->TimerFcn->queue_in,NULL);
+    gettimeofday(&t->TimerFcn->queue_in[i],NULL);
     queueAdd(fifo, t->TimerFcn);
     
     pthread_mutex_unlock(fifo->mut);
     pthread_cond_signal(fifo->notEmpty);
     gettimeofday(&end_prods,NULL);
-    prods_delay[i] = (int)((end_prods.tv_usec-t->TimerFcn->queue_in.tv_usec + (end_prods.tv_sec-t->TimerFcn->queue_in.tv_sec)*1e06));
+    prods_delay[i] = (int)((end_prods.tv_usec-t->TimerFcn->queue_in[i].tv_usec + (end_prods.tv_sec-t->TimerFcn->queue_in[i].tv_sec)*1e06));
     if(i != t->TasksToExecute - 1){
       usleep(adjust);
       delay_time = -t->Period;
@@ -168,7 +168,7 @@ void *consumer(void *q)
     */
     pthread_mutex_lock(d.work_mutex);
     d.cons_delay[*d.times_executed] = (int)((end_time.tv_usec-start_time.tv_usec + (end_time.tv_sec-start_time.tv_sec)*1e06));
-    d.queue_lag[*d.times_executed] = (int)((end_time.tv_usec-d.queue_in.tv_usec + (end_time.tv_sec-d.queue_in.tv_sec)*1e06));
+    d.queue_lag[*d.times_executed] = (int)((end_time.tv_usec-d.queue_in[*d.times_executed].tv_usec + (end_time.tv_sec-d.queue_in[*d.times_executed].tv_sec)*1e06));
     *d.times_executed += 1;
     if(*d.times_executed == d.TasksToExecute){
       *d.done = 1;
@@ -193,12 +193,12 @@ void*  function_print_2(void* arg){
 }
 
 void* function_sin(void* arg){
-  srand(time(NULL));
-  compute 10 random integer sins
-  for(int i =0; i < 9; i++){
-    sin(rand() % 361);
-  }
-  // printf("Function 3 called randomly, the random argument is : %d  \n",*((int *) arg));
+  // srand(time(NULL));
+  //compute 10 random integer sins
+  // for(int i =0; i < 9; i++){
+  //   sin(rand() % 361);
+  // }
+  printf("Function 3 called randomly, the random argument is : %d  \n",*((int *) arg));
   return (NULL);
 }
 

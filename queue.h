@@ -26,7 +26,7 @@ typedef struct{
   int *times_executed;
   pthread_mutex_t *work_mutex;
   pthread_cond_t *execution_complete;
-  struct timeval queue_in;
+  struct timeval *queue_in;
   int *cons_delay,*queue_lag;
 
 
