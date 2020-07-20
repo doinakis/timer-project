@@ -194,11 +194,11 @@ void*  function_print_2(void* arg){
 
 void* function_sin(void* arg){
   srand(time(NULL));
-  //compute 10 random integer sins
-  // for(int i =0; i < 9; i++){
-  //   sin(rand() % 361);
-  // }
-  printf("Function 3 called randomly, the random argument is : %d  \n",*((int *) arg));
+  compute 10 random integer sins
+  for(int i =0; i < 9; i++){
+    sin(rand() % 361);
+  }
+  // printf("Function 3 called randomly, the random argument is : %d  \n",*((int *) arg));
   return (NULL);
 }
 
